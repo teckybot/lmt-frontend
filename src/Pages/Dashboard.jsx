@@ -1,120 +1,124 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import React, { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import DashboardLayout from '../components/DashboardLayout';
+import DashboardHome from '../components/DashboardHome';
+import Leads from '../components/Leads';
+import Profile from '../components/Profile';
+import CreateLead from '../components/CreateLead';
 
 const Dashboard = () => {
   const [leads, setLeads] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    navigate("/");
-  };
-
-  const fetchLeads = async () => {
-    const token = localStorage.getItem("token");
+  const fetchLeads = useCallback(async () => {  
+    const token = localStorage.getItem('token');
     if (!token) {
-      navigate("/");
+      navigate('/login');
       return;
     }
 
+    setIsLoading(true);
+    setError(null);
     try {
       const res = await axios.get("http://localhost:5000/api/leads", {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` }
       });
       setLeads(res.data);
+      
+      // Calculate stats
+      const statsData = {
+        total: res.data.length,
+        new: res.data.filter(lead => lead.status === "New").length,
+        inProgress: res.data.filter(lead => lead.status === "In Progress").length,
+        closed: res.data.filter(lead => lead.status === "Closed").length,
+        totalValue: res.data.reduce((sum, lead) => sum + (parseFloat(lead.value) || 0), 0)
+      };
+      setStats(statsData);
     } catch (err) {
       console.error("Error fetching leads", err);
-      navigate("/");
+      setError(err.response?.data?.message || "Failed to load leads");
+      if (err.response?.status === 401) {
+        localStorage.removeItem('token');
+        navigate('/login');
+      }
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [navigate]);
 
   const updateStatus = async (leadId, newStatus) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem('token');
     try {
       await axios.put(
         `http://localhost:5000/api/leads/${leadId}/status`,
         { status: newStatus },
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` }
         }
       );
-
-      // Update status locally after success
-      setLeads((prevLeads) =>
-        prevLeads.map((lead) =>
-          lead.id === leadId ? { ...lead, status: newStatus } : lead
-        )
-      );
+      await fetchLeads(); // Wait for refresh to complete
     } catch (err) {
       console.error("Error updating status", err);
-      alert("Failed to update status");
+      setError("Failed to update status. Please try again.");
     }
   };
 
   useEffect(() => {
     fetchLeads();
-  }, []);
+  }, [fetchLeads]);
+
+  const renderContent = () => {
+    if (isLoading && activeTab !== 'CreateLead') {
+      return (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      );
+    }
+
+    if (error && activeTab !== 'CreateLead') {
+      return (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 my-4">
+          <div className="flex items-center">
+            <div className="text-red-500 mr-2">⚠️</div>
+            <div>
+              <p className="font-medium">Error</p>
+              <p className="text-sm">{error}</p>
+              <button 
+                onClick={fetchLeads}
+                className="mt-2 text-sm text-blue-600 hover:text-blue-800"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    switch (activeTab) {
+      case 'dashboard':
+        return <DashboardHome stats={stats} isLoading={isLoading} />;
+      case 'leads':
+        return <Leads leads={leads} updateStatus={updateStatus} isLoading={isLoading} />;
+      case 'CreateLead':
+        return <CreateLead onSuccess={fetchLeads} />;
+      case 'profile':
+        return <Profile />;
+      default:
+        return <DashboardHome stats={stats} isLoading={isLoading} />;
+    }
+  };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Dashboard</h2>
-        <button
-          onClick={logout}
-          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-        >
-          Logout
-        </button>
-      </div>
-
-      <table className="min-w-full table-auto border-collapse border">
-        <thead className="bg-gray-100">
-          <tr>
-            {[
-              "Title",
-              "Customer Name",
-              "Phone",
-              "Email",
-              "Source",
-              "Due Date",
-              "Priority",
-              "Status",
-              "Notes",
-            ].map((col) => (
-              <th key={col} className="border px-4 py-2 text-left">
-                {col}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {leads.map((lead) => (
-            <tr key={lead.id} className="border-b">
-              <td className="px-4 py-2">{lead.title}</td>
-              <td className="px-4 py-2">{lead.customer_name}</td>
-              <td className="px-4 py-2">{lead.phone}</td>
-              <td className="px-4 py-2">{lead.email}</td>
-              <td className="px-4 py-2">{lead.source}</td>
-              <td className="px-4 py-2">{lead.due_date}</td>
-              <td className="px-4 py-2">{lead.priority}</td>
-              <td className="px-4 py-2">
-                <select
-                  value={lead.status || "New"}
-                  onChange={(e) => updateStatus(lead.id, e.target.value)}
-                  className="border px-2 py-1 rounded"
-                >
-                  <option value="New">New</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Closed">Closed</option>
-                </select>
-              </td>
-              <td className="px-4 py-2">{lead.notes}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <DashboardLayout activeTab={activeTab} setActiveTab={setActiveTab}>
+      {renderContent()}
+    </DashboardLayout>
   );
 };
 
