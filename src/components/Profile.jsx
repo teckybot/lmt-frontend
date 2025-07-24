@@ -17,7 +17,7 @@ const Profile = () => {
       const token = localStorage.getItem('token');
       try {
         // Fetch user data
-        const userRes = await axios.get('http://localhost:5000/api/user/profile', {
+        const userRes = await axios.get('https://lmt-backend.onrender.com/api/user/profile', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setUser(userRes.data);
@@ -29,7 +29,7 @@ const Profile = () => {
         });
 
         // Fetch user activity
-        const activityRes = await axios.get('http://localhost:5000/api/user/activity', {
+        const activityRes = await axios.get('https://lmt-backend.onrender.com/api/user/activity', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setActivity(activityRes.data);
@@ -50,7 +50,7 @@ const Profile = () => {
     e.preventDefault();
     const token = localStorage.getItem('token');
     try {
-      await axios.put('http://localhost:5000/api/user/profile', formData, {
+      await axios.put('https://lmt-backend.onrender.com/api/user/profile', formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUser({ ...user, ...formData });

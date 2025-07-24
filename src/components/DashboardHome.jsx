@@ -28,7 +28,7 @@ const Analytics = () => {
           return;
         }
 
-        const res = await axios.get('http://localhost:5000/api/leads/analytics', {
+        const res = await axios.get('https://lmt-backend.onrender.com/api/leads/analytics', {
           headers: {
             Authorization: `Bearer ${token}`,
           },

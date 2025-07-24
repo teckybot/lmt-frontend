@@ -25,7 +25,7 @@ const Dashboard = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await axios.get("http://localhost:5000/api/leads", {
+      const res = await axios.get("https://lmt-backend.onrender.com/api/leads", {
         headers: { Authorization: `Bearer ${token}` }
       });
       setLeads(res.data);

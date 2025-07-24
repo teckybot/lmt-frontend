@@ -38,7 +38,7 @@ const CreateLead = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
-      await axios.post("http://localhost:5000/api/leads", formData, {
+      await axios.post("https://lmt-backend.onrender.com/api/leads", formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert("Lead created successfully!");
