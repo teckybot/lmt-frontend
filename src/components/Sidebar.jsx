@@ -1,4 +1,5 @@
 import React from 'react';
+import Teckybot from '../Data/Teckybot.png';
 import { 
   FiHome,
   FiUsers,
@@ -28,8 +29,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
       {/* Fixed Sidebar */}
       <div className="w-64 bg-white border-r border-gray-200 flex-shrink-0 fixed top-0 left-0 bottom-0 shadow-sm z-10">
         <div className="p-6 pb-4">
-          <h1 className="text-4xl text-left font-bold text-gray-800">LMT</h1>
-          <p className="text-xs text-left text-gray-500 mt-1">Manage Your Organization Leads and Projects</p>
+          <img src={Teckybot} alt="" />
         </div>
         
         <nav className="p-4">
