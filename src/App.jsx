@@ -11,6 +11,7 @@ import Leads from "./components/Leads";
 function App() {
   return (
     <Router>
+      
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/side" element={<Sidebar />} />
