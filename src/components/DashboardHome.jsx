@@ -35,6 +35,7 @@ const Analytics = () => {
         });
 
         setAnalyticsData(res.data);
+        console.log('Analytics data received:', res.data); // Debug log
       } catch (err) {
         console.error('Error fetching analytics:', err);
         setError(err.response?.data?.message || err.message);
@@ -205,7 +206,6 @@ const Analytics = () => {
 
 // Enhanced KPI Card Component
 const KPICard = ({ title, value, icon, trend }) => {
-  // This would be more dynamic in a real app with actual trend data
   const trendData = {
     total: { value: '+12%', color: 'text-green-500' },
     new: { value: '+5%', color: 'text-green-500' },
@@ -236,6 +236,7 @@ const KPICard = ({ title, value, icon, trend }) => {
 
 // Enhanced Lead Section Component
 const LeadSection = ({ title, leads, icon, emptyMessage }) => {
+  console.log(`${title} data:`, leads); // Debug log
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
       <div className="flex items-center justify-between mb-4">
@@ -256,9 +257,9 @@ const LeadSection = ({ title, leads, icon, emptyMessage }) => {
             >
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="font-medium text-gray-800">{lead.title}</p>
+                  <p className="font-medium text-gray-800">{lead.title || 'Untitled Lead'}</p>
                   <p className="text-sm text-gray-600 mt-1">
-                    <span className="font-medium">{lead.customer_name}</span>
+                    <span className="font-medium">{lead.customer_name || 'Unknown'}</span>
                   </p>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -287,7 +288,7 @@ const PriorityBadge = ({ priority }) => {
   };
 
   return (
-    <span className={`text-xs px-2 py-1 rounded-full ${priorityStyles[priority] || 'bg-gray-100 text-gray-800'}`}>
+    <span className={`text-xs px-2 py-1 rounded-full ${priorityStyles[priority?.toLowerCase()] || 'bg-gray-100 text-gray-800'}`}>
       {priority || 'Unknown'}
     </span>
   );
