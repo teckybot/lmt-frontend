@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { FiMail, FiLock, FiLogIn } from "react-icons/fi";
+import Teckybot from '../Data/Teckybot.png';
 
 const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -32,11 +33,11 @@ const Login = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <div className="w-12 h-12 rounded-lg bg-blue-600 flex items-center justify-center text-white text-xl font-bold">
-            LM
-          </div>
+          <div className="">
+          <img src={Teckybot} className="w-48" alt="teckybot" />
         </div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        </div>
+        <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
           Sign in to your account
         </h2>
       </div>
