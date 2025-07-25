@@ -185,18 +185,18 @@ const Analytics = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Leads */}
         <LeadSection 
-          title="Recent Leads" 
+          title="Recent Leads (Last 5 Days)" 
           leads={recentLeads} 
           icon={<FiTrendingUp className="text-green-500" />}
-          emptyMessage="No recent leads"
+          emptyMessage="No recent leads in the last 5 days"
         />
 
         {/* Recently Closed Leads */}
         <LeadSection 
-          title="Recently Closed Leads" 
+          title="Recently Closed Leads (Last 5 Days)" 
           leads={recentlyClosedLeads} 
           icon={<FiCheckCircle className="text-purple-500" />}
-          emptyMessage="No recently closed leads"
+          emptyMessage="No recently closed leads in the last 5 days"
         />
       </div>
     </div>

@@ -1,181 +1,232 @@
-import React, { useState } from 'react';
-import { 
-  FiSearch,
-  FiEdit2,
-  FiTrash2,
-  FiDollarSign,
-  FiPhone,
-  FiMail,
-  FiChevronDown
-} from 'react-icons/fi';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { FiEdit, FiTrash2, FiChevronDown } from "react-icons/fi";
 
-const Leads = ({ leads, updateStatus }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [priorityFilter, setPriorityFilter] = useState('all');
-
-  const filteredLeads = leads.filter(lead => {
-    const matchesSearch = 
-      lead.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      lead.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (lead.email && lead.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (lead.phone && lead.phone.includes(searchTerm));
-    
-    const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
-    const matchesPriority = priorityFilter === 'all' || lead.priority === priorityFilter;
-    
-    return matchesSearch && matchesStatus && matchesPriority;
+const LeadsTable = () => {
+  const [leads, setLeads] = useState([]);
+  const [editingLead, setEditingLead] = useState(null);
+  const [formData, setFormData] = useState({
+    title: "",
+    customer_name: "",
+    phone: "",
+    email: "",
+    source: "",
+    due_date: "",
+    priority: "",
+    notes: "",
   });
 
-  return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      {/* Filters Section */}
-      <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row gap-4 md:items-center justify-between">
-        <div className="relative flex-1 max-w-md">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <FiSearch className="text-gray-400" />
-          </div>
-          <input
-            type="text"
-            placeholder="Search leads..."
-            className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative">
-            <select
-              className="appearance-none pl-3 pr-8 py-2 border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">All Statuses</option>
-              <option value="New">New</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Closed">Closed</option>
-            </select>
-            <FiChevronDown className="absolute right-3 top-3 text-gray-400" />
-          </div>
-          
-          <div className="relative">
-            <select
-              className="appearance-none pl-3 pr-8 py-2 border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              value={priorityFilter}
-              onChange={(e) => setPriorityFilter(e.target.value)}
-            >
-              <option value="all">All Priorities</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
-            <FiChevronDown className="absolute right-3 top-3 text-gray-400" />
-          </div>
-        </div>
-      </div>
+  const token = localStorage.getItem("token");
 
-      {/* Table Section */}
+  useEffect(() => {
+    fetchLeads();
+  }, []);
+
+  const fetchLeads = async () => {
+    try {
+      const res = await axios.get("https://lmt-backend.onrender.com/api/leads", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setLeads(res.data);
+    } catch (err) {
+      console.error("Error fetching leads", err);
+    }
+  };
+
+  const updateStatus = async (leadId, newStatus) => {
+    try {
+      await axios.put(
+        `https://lmt-backend.onrender.com/api/leads/${leadId}/status`,
+        { status: newStatus },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      fetchLeads();
+    } catch (err) {
+      console.error("Error updating status", err);
+    }
+  };
+
+  const deleteLead = async (leadId) => {
+    if (!window.confirm("Are you sure you want to delete this lead?")) return;
+    try {
+      await axios.delete(`https://lmt-backend.onrender.com/api/leads/${leadId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchLeads();
+    } catch (err) {
+      console.error("Error deleting lead", err);
+    }
+  };
+
+  const handleEditClick = (lead) => {
+    setEditingLead(lead.id);
+    setFormData({ ...lead });
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.put(
+        `https://lmt-backend.onrender.com/api/leads/${editingLead}`,
+        formData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setEditingLead(null);
+      fetchLeads();
+    } catch (err) {
+      console.error("Error updating lead", err);
+    }
+  };
+
+  const handleChange = (e) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  return (
+    <div className="p-4">
+      <h2 className="text-2xl font-semibold mb-4">All Leads</h2>
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full border border-gray-200 rounded-lg overflow-hidden">
+          <thead className="bg-gray-100 text-gray-700">
             <tr>
-              {['Title', 'Customer', 'Contact', 'Status', 'Priority', 'Value', 'Actions'].map((header) => (
-                <th
-                  key={header}
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  {header}
-                </th>
-              ))}
+              <th className="px-4 py-2 text-left">Title</th>
+              <th className="px-4 py-2 text-left">Customer</th>
+              <th className="px-4 py-2 text-left">Email</th>
+              <th className="px-4 py-2 text-left">Phone</th>
+              <th className="px-4 py-2 text-left">Priority</th>
+              <th className="px-4 py-2 text-left">Status</th>
+              <th className="px-4 py-2 text-left">Due Date</th>
+              <th className="px-4 py-2 text-left">Actions</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-100">
-            {filteredLeads.length > 0 ? (
-              filteredLeads.map((lead) => (
-                <tr key={lead.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="font-medium text-gray-900">{lead.title}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-gray-900">{lead.customer_name}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center text-gray-500 space-x-2">
-                      {lead.email && (
-                        <a href={`mailto:${lead.email}`} className="flex items-center hover:text-blue-500">
-                          <FiMail className="mr-1" /> {lead.email}
-                        </a>
-                      )}
-                      {lead.phone && (
-                        <a href={`tel:${lead.phone}`} className="flex items-center hover:text-blue-500">
-                          <FiPhone className="mr-1" /> {lead.phone}
-                        </a>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="relative">
+          <tbody>
+            {leads.map((lead) => (
+              <tr key={lead.id} className="border-t">
+                {editingLead === lead.id ? (
+                  <>
+                    <td className="px-4 py-2">
+                      <input
+                        name="title"
+                        value={formData.title}
+                        onChange={handleChange}
+                        className="border px-2 py-1 rounded w-full"
+                      />
+                    </td>
+                    <td className="px-4 py-2">
+                      <input
+                        name="customer_name"
+                        value={formData.customer_name}
+                        onChange={handleChange}
+                        className="border px-2 py-1 rounded w-full"
+                      />
+                    </td>
+                    <td className="px-4 py-2">
+                      <input
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        className="border px-2 py-1 rounded w-full"
+                      />
+                    </td>
+                    <td className="px-4 py-2">
+                      <input
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        className="border px-2 py-1 rounded w-full"
+                      />
+                    </td>
+                    <td className="px-4 py-2">
                       <select
-                        value={lead.status || "New"}
-                        onChange={(e) => updateStatus(lead.id, e.target.value)}
-                        className={`block w-full pl-3 pr-8 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none
-                          ${lead.status === "New" ? "border-blue-200 bg-blue-50 text-blue-800" : 
-                            lead.status === "In Progress" ? "border-yellow-200 bg-yellow-50 text-yellow-800" : 
-                            "border-green-200 bg-green-50 text-green-800"}`}
+                        name="priority"
+                        value={formData.priority}
+                        onChange={handleChange}
+                        className="border px-2 py-1 rounded w-full"
                       >
-                        <option value="New">New</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Closed">Closed</option>
+                        <option value="High">High</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Low">Low</option>
                       </select>
-                      <FiChevronDown className="absolute right-2 top-2.5 text-gray-400 text-xs" />
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2.5 py-1 inline-flex text-xs leading-4 font-medium rounded-full 
-                      ${lead.priority === "high" ? "bg-red-100 text-red-800" : 
-                        lead.priority === "medium" ? "bg-yellow-100 text-yellow-800" : 
-                        "bg-green-100 text-green-800"}`}>
-                      {lead.priority?.charAt(0).toUpperCase() + lead.priority?.slice(1)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {lead.value ? (
-                      <div className="flex items-center text-gray-900">
-                        <FiDollarSign className="text-gray-400 mr-1" />
-                        {parseFloat(lead.value).toLocaleString('en-US', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2
-                        })}
-                      </div>
-                    ) : "-"}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <div className="flex items-center justify-end space-x-3">
+                    </td>
+                    <td className="px-4 py-2">{lead.status}</td>
+                    <td className="px-4 py-2">
+                      <input
+                        name="due_date"
+                        type="date"
+                        value={formData.due_date?.split("T")[0]}
+                        onChange={handleChange}
+                        className="border px-2 py-1 rounded w-full"
+                      />
+                    </td>
+                    <td className="px-4 py-2">
                       <button
-                        className="text-blue-500 hover:text-blue-700 p-1 rounded hover:bg-blue-50"
-                        onClick={() => openEditModal(lead)}
+                        onClick={handleEditSubmit}
+                        className="text-green-600 mr-2"
                       >
-                        <FiEdit2 />
+                        Save
                       </button>
                       <button
-                        className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50"
-                        onClick={() => handleDelete(lead.id)}
+                        onClick={() => setEditingLead(null)}
+                        className="text-gray-600"
+                      >
+                        Cancel
+                      </button>
+                    </td>
+                  </>
+                ) : (
+                  <>
+                    <td className="px-4 py-2">{lead.title}</td>
+                    <td className="px-4 py-2">{lead.customer_name}</td>
+                    <td className="px-4 py-2">{lead.email}</td>
+                    <td className="px-4 py-2">{lead.phone}</td>
+                    <td className="px-4 py-2">{lead.priority}</td>
+                    <td className="px-4 py-2">
+                      <div className="relative">
+                        <select
+                          value={lead.status || "New"}
+                          onChange={(e) =>
+                            updateStatus(lead.id, e.target.value)
+                          }
+                          className={`block w-full pl-3 pr-8 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 appearance-none
+                          ${lead.status === "New"
+                              ? "border-blue-200 bg-blue-50 text-blue-800"
+                              : lead.status === "In Progress"
+                                ? "border-yellow-200 bg-yellow-50 text-yellow-800"
+                                : "border-green-200 bg-green-50 text-green-800"
+                            }`}
+                        >
+                          <option value="New">New</option>
+                          <option value="In Progress">In Progress</option>
+                          <option value="Closed">Closed</option>
+                        </select>
+                        <FiChevronDown className="absolute right-2 top-2.5 text-gray-400 text-xs" />
+                      </div>
+                    </td>
+                    <td className="px-4 py-2">
+                      {new Date(lead.due_date).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-2 flex items-center gap-2">
+                      <button
+                        onClick={() => handleEditClick(lead)}
+                        className="text-blue-600"
+                      >
+                        <FiEdit />
+                      </button>
+                      <button
+                        onClick={() => deleteLead(lead.id)}
+                        className="text-red-600"
                       >
                         <FiTrash2 />
                       </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
-                  No leads found matching your criteria
-                </td>
+                    </td>
+                  </>
+                )}
               </tr>
-            )}
+            ))}
           </tbody>
         </table>
       </div>
@@ -183,4 +234,4 @@ const Leads = ({ leads, updateStatus }) => {
   );
 };
 
-export default Leads;
+export default LeadsTable;
