@@ -1,8 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
-import { FiEdit, FiTrash2, FiChevronDown, FiSearch, FiDownload } from "react-icons/fi";
-import { jsPDF } from "jspdf";
-import "jspdf-autotable";
+import { FiEdit, FiTrash2, FiChevronDown, FiSearch } from "react-icons/fi";
 import { toast } from "react-toastify";
 
 const LeadsTable = () => {
@@ -22,7 +20,10 @@ const LeadsTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [sourceFilter, setSourceFilter] = useState("All");
   const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 20;
 
   const token = localStorage.getItem("token");
 
@@ -122,101 +123,46 @@ const LeadsTable = () => {
 
       const matchesPriority = priorityFilter === "All" || lead.priority === priorityFilter;
       const matchesStatus = statusFilter === "All" || lead.status === statusFilter;
+      const matchesSource = sourceFilter === "All" || lead.source === sourceFilter;
 
-      return matchesSearch && matchesPriority && matchesStatus;
+      return matchesSearch && matchesPriority && matchesStatus && matchesSource;
     });
-  }, [leads, searchTerm, priorityFilter, statusFilter]);
+  }, [leads, searchTerm, priorityFilter, statusFilter, sourceFilter]);
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredLeads.length / rowsPerPage);
+  const paginatedLeads = useMemo(() => {
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    return filteredLeads.slice(startIndex, startIndex + rowsPerPage);
+  }, [filteredLeads, currentPage]);
 
   const uniquePriorities = [...new Set(leads.map((lead) => lead.priority).filter((p) => p))];
   const uniqueStatuses = [...new Set(leads.map((lead) => lead.status).filter((s) => s))];
+  const uniqueSources = [
+    ...new Set(leads.map((lead) => lead.source).filter((s) => s)),
+    "Year Long Programme",
+    "STEM Labs",
+    "Training",
+    "LMS",
+    "Workshop",
+    "Projects",
+    "Website Development",
+    "Internships",
+    "Bootcamps",
+    "Product Selling",
+    "Other"
+  ].filter((value, index, self) => self.indexOf(value) === index);
 
-  const downloadPDF = () => {
-    try {
-      if (filteredLeads.length === 0) {
-        toast.info("No leads to download in the current filter selection.");
-        return;
-      }
-
-      const doc = new jsPDF({
-        orientation: "landscape"
-      });
-
-      // Add title and date
-      doc.setFontSize(18);
-      doc.setTextColor(40, 40, 40);
-      doc.setFont("helvetica", "bold");
-      doc.text("Leads Report", 14, 20);
-      
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "normal");
-      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 28);
-
-      // Prepare table data
-      const tableColumn = ["Title", "Customer", "Email", "Phone", "Priority", "Status", "Due Date"];
-      const tableRows = filteredLeads.map((lead) => {
-        const dueDate = lead.due_date
-          ? new Date(lead.due_date).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "short",
-              day: "2-digit",
-            })
-          : "N/A";
-        return [
-          lead.title || "N/A",
-          lead.customer_name || "N/A",
-          lead.email || "N/A",
-          lead.phone || "N/A",
-          lead.priority || "N/A",
-          lead.status || "N/A",
-          dueDate,
-        ];
-      });
-
-      // Add table
-      doc.autoTable({
-        head: [tableColumn],
-        body: tableRows,
-        startY: 35,
-        theme: "grid",
-        headStyles: {
-          fillColor: [51, 102, 153],
-          textColor: 255,
-          fontStyle: "bold",
-          fontSize: 10
-        },
-        styles: {
-          fontSize: 9,
-          cellPadding: 3,
-          overflow: "linebreak"
-        },
-        columnStyles: {
-          0: { cellWidth: 30 },
-          1: { cellWidth: 25 },
-          2: { cellWidth: 35 },
-          3: { cellWidth: 25 },
-          4: { cellWidth: 15 },
-          5: { cellWidth: 20 },
-          6: { cellWidth: 20 }
-        },
-        didDrawPage: function (data) {
-          // Footer
-          doc.setFontSize(8);
-          doc.setTextColor(100);
-          doc.text(
-            `Page ${data.pageNumber}`,
-            doc.internal.pageSize.width - 20,
-            doc.internal.pageSize.height - 10
-          );
-        }
-      });
-
-      // Save the PDF
-      const fileName = `leads-report-${new Date().toISOString().split("T")[0]}.pdf`;
-      doc.save(fileName);
-      toast.success("PDF downloaded successfully!");
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      toast.error("Failed to generate PDF. Please try again.");
+  const getPriorityColor = (priority) => {
+    switch (priority?.toLowerCase()) {
+      case 'high':
+        return { bg: 'bg-red-100', text: 'text-red-800' };
+      case 'medium':
+        return { bg: 'bg-yellow-100', text: 'text-yellow-800' };
+      case 'low':
+        return { bg: 'bg-green-100', text: 'text-green-800' };
+      default:
+        return { bg: 'bg-gray-100', text: 'text-gray-800' };
     }
   };
 
@@ -271,18 +217,18 @@ const LeadsTable = () => {
                 ))}
               </select>
 
-              <button
-                onClick={downloadPDF}
-                disabled={filteredLeads.length === 0 || loading}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ${
-                  filteredLeads.length === 0 || loading
-                    ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                    : "bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-                }`}
+              <select
+                value={sourceFilter}
+                onChange={(e) => setSourceFilter(e.target.value)}
+                className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
               >
-                <FiDownload className="text-sm" />
-                <span>Export</span>
-              </button>
+                <option value="All">All Sources</option>
+                {uniqueSources.map((source) => (
+                  <option key={source} value={source}>
+                    {source}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
@@ -293,15 +239,19 @@ const LeadsTable = () => {
             ) : (
               <>
                 <span>
-                  Showing <span className="font-medium">{filteredLeads.length}</span> of{" "}
-                  <span className="font-medium">{leads.length}</span> leads
+                  Showing <span className="font-medium">{(currentPage - 1) * rowsPerPage + 1}</span> to{" "}
+                  <span className="font-medium">
+                    {Math.min(currentPage * rowsPerPage, filteredLeads.length)}
+                  </span>{" "}
+                  of <span className="font-medium">{filteredLeads.length}</span> leads
                 </span>
-                {(searchTerm || priorityFilter !== "All" || statusFilter !== "All") && (
+                {(searchTerm || priorityFilter !== "All" || statusFilter !== "All" || sourceFilter !== "All") && (
                   <button
                     onClick={() => {
                       setSearchTerm("");
                       setPriorityFilter("All");
                       setStatusFilter("All");
+                      setSourceFilter("All");
                     }}
                     className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                   >
@@ -317,35 +267,36 @@ const LeadsTable = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">Title</th>
+                  <th className="px-12 pl-8 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">Customer</th>
+                  <th className="px-20 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-56">Email</th>
+                  <th className="px-12 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Phone</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">Service</th>
+                  <th className="px-12 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Priority</th>
+                  <th className="px-12 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Due Date</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {loading ? (
                   <tr>
-                    <td colSpan="8" className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan="9" className="px-6 py-8 text-center text-gray-500">
                       Loading leads...
                     </td>
                   </tr>
-                ) : filteredLeads.length === 0 ? (
+                ) : paginatedLeads.length === 0 ? (
                   <tr>
-                    <td colSpan="8" className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan="9" className="px-6 py-8 text-center text-gray-500">
                       No leads found matching the current filters.
                     </td>
                   </tr>
                 ) : (
-                  filteredLeads.map((lead) => (
+                  paginatedLeads.map((lead) => (
                     <tr key={lead.id} className="hover:bg-gray-50">
                       {editingLead === lead.id ? (
                         <>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-4 py-4 whitespace-nowrap">
                             <input
                               name="title"
                               value={formData.title || ""}
@@ -353,7 +304,7 @@ const LeadsTable = () => {
                               className="border px-3 py-1 rounded-md w-full text-sm focus:ring-blue-500 focus:border-blue-500"
                             />
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-4 py-4 whitespace-nowrap">
                             <input
                               name="customer_name"
                               value={formData.customer_name || ""}
@@ -369,7 +320,7 @@ const LeadsTable = () => {
                               className="border px-3 py-1 rounded-md w-full text-sm focus:ring-blue-500 focus:border-blue-500"
                             />
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-2 py-4 whitespace-nowrap">
                             <input
                               name="phone"
                               value={formData.phone || ""}
@@ -377,7 +328,22 @@ const LeadsTable = () => {
                               className="border px-3 py-1 rounded-md w-full text-sm focus:ring-blue-500 focus:border-blue-500"
                             />
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <select
+                              name="source"
+                              value={formData.source || ""}
+                              onChange={handleChange}
+                              className="border px-3 py-1 rounded-md w-full text-sm focus:ring-blue-500 focus:border-blue-500"
+                            >
+                              <option value="">Select Source</option>
+                              {uniqueSources.map((source) => (
+                                <option key={source} value={source}>
+                                  {source}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap">
                             <select
                               name="priority"
                               value={formData.priority || ""}
@@ -389,7 +355,7 @@ const LeadsTable = () => {
                               <option value="Low">Low</option>
                             </select>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-4 py-4 whitespace-nowrap">
                             <select
                               name="status"
                               value={formData.status || ""}
@@ -401,7 +367,7 @@ const LeadsTable = () => {
                               <option value="Closed">Closed</option>
                             </select>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-4 py-4 whitespace-nowrap">
                             <input
                               name="due_date"
                               type="date"
@@ -410,7 +376,7 @@ const LeadsTable = () => {
                               className="border px-3 py-1 rounded-md w-full text-sm focus:ring-blue-500 focus:border-blue-500"
                             />
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-4 py-4 whitespace-nowrap">
                             <button
                               onClick={handleEditSubmit}
                               disabled={loading}
@@ -429,36 +395,41 @@ const LeadsTable = () => {
                         </>
                       ) : (
                         <>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{lead.title || "N/A"}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{lead.customer_name || "N/A"}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{lead.email || "N/A"}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{lead.phone || "N/A"}</td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 truncate max-w-xs" title={lead.title || "N/A"}>
+                            {lead.title || "N/A"}
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 truncate max-w-xs" title={lead.customer_name || "N/A"}>
+                            {lead.customer_name || "N/A"}
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 truncate max-w-xs" title={lead.email || "N/A"}>
+                            {lead.email || "N/A"}
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {lead.phone || "N/A"}
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 truncate max-w-xs" title={lead.source || "N/A"}>
+                            {lead.source || "N/A"}
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap">
                             <span
-                              className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                lead.priority === "High"
-                                  ? "bg-red-100 text-red-800"
-                                  : lead.priority === "Medium"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : "bg-green-100 text-green-800"
-                              }`}
+                              className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(lead.priority).bg
+                                } ${getPriorityColor(lead.priority).text}`}
                             >
                               {lead.priority || "N/A"}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-4 py-4 whitespace-nowrap">
                             <div className="relative">
                               <select
                                 value={lead.status || "New"}
                                 onChange={(e) => updateStatus(lead.id, e.target.value)}
                                 disabled={loading}
-                                className={`block w-full pl-3 pr-8 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 appearance-none ${
-                                  lead.status === "New"
+                                className={`block w-full pl-3 pr-8 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 appearance-none ${lead.status === "New"
                                     ? "border-blue-200 bg-blue-50 text-blue-800"
                                     : lead.status === "In Progress"
-                                    ? "border-yellow-200 bg-yellow-50 text-yellow-800"
-                                    : "border-green-200 bg-green-50 text-green-800"
-                                }`}
+                                      ? "border-yellow-200 bg-yellow-50 text-yellow-800"
+                                      : "border-green-200 bg-green-50 text-green-800"
+                                  }`}
                               >
                                 <option value="New">New</option>
                                 <option value="In Progress">In Progress</option>
@@ -467,16 +438,16 @@ const LeadsTable = () => {
                               <FiChevronDown className="absolute right-2 top-2.5 text-gray-400 text-xs pointer-events-none" />
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                             {lead.due_date
                               ? new Date(lead.due_date).toLocaleDateString("en-US", {
-                                  year: "numeric",
-                                  month: "short",
-                                  day: "2-digit",
-                                })
+                                year: "numeric",
+                                month: "short",
+                                day: "2-digit",
+                              })
                               : "N/A"}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
                             <div className="flex items-center gap-3">
                               <button
                                 onClick={() => handleEditClick(lead)}
@@ -504,6 +475,31 @@ const LeadsTable = () => {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4">
+              <div className="text-sm text-gray-700">
+                Page <span className="font-medium">{currentPage}</span> of <span className="font-medium">{totalPages}</span>
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 border rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 border rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
