@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
-import { FiEdit, FiTrash2, FiChevronDown, FiSearch } from "react-icons/fi";
+import { FiEdit, FiTrash2, FiChevronDown, FiSearch, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { toast } from "react-toastify";
 
 const LeadsTable = () => {
@@ -23,7 +23,8 @@ const LeadsTable = () => {
   const [sourceFilter, setSourceFilter] = useState("All");
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 20;
+  const [showFilters, setShowFilters] = useState(false);
+  const rowsPerPage = 10;
 
   const token = localStorage.getItem("token");
 
@@ -167,73 +168,98 @@ const LeadsTable = () => {
   };
 
   return (
-    <div className="p-6 bg-white min-h-screen">
+    <div className="p-4 bg-white  mt-16 md:mt-0">
       <div className="max-w-7xl mx-auto">
-        <div className="bg-white rounded-lg p-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800">Leads Management</h2>
-              <p className="text-sm text-gray-600">Track and manage all your leads in one place</p>
-            </div>
+        <div className="bg-white rounded-lg p-4 md:p-6">
+          {/* Header */}
+          <div className="mb-6">
+            <h2 className="text-xl md:text-2xl font-bold text-gray-800">Leads Management</h2>
+            <p className="text-xs md:text-sm text-gray-600">Track and manage all your leads</p>
+          </div>
 
-            {/* Search and Filters Row */}
-            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-              <div className="relative w-full sm:w-64">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <FiSearch className="text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search leads..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                />
+          {/* Search and Filters */}
+          <div className="mb-4">
+            <div className="relative w-full mb-2">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <FiSearch className="text-gray-400" />
               </div>
-
-              <select
-                value={priorityFilter}
-                onChange={(e) => setPriorityFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-              >
-                <option value="All">All Priorities</option>
-                {uniquePriorities.map((priority) => (
-                  <option key={priority} value={priority}>
-                    {priority}
-                  </option>
-                ))}
-              </select>
-
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-              >
-                <option value="All">All Statuses</option>
-                {uniqueStatuses.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
-
-              <select
-                value={sourceFilter}
-                onChange={(e) => setSourceFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-              >
-                <option value="All">All Sources</option>
-                {uniqueSources.map((source) => (
-                  <option key={source} value={source}>
-                    {source}
-                  </option>
-                ))}
-              </select>
+              <input
+                type="text"
+                placeholder="Search leads..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+              />
             </div>
+
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="text-blue-600 text-sm font-medium flex items-center"
+            >
+              {showFilters ? 'Hide Filters' : 'Show Filters'}
+              <FiChevronDown className={`ml-1 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+            </button>
+
+            {showFilters && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+                <select
+                  value={priorityFilter}
+                  onChange={(e) => setPriorityFilter(e.target.value)}
+                  className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs md:text-sm"
+                >
+                  <option value="All">All Priorities</option>
+                  {uniquePriorities.map((priority) => (
+                    <option key={priority} value={priority}>
+                      {priority}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs md:text-sm"
+                >
+                  <option value="All">All Statuses</option>
+                  {uniqueStatuses.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={sourceFilter}
+                  onChange={(e) => setSourceFilter(e.target.value)}
+                  className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs md:text-sm"
+                >
+                  <option value="All">All Sources</option>
+                  {uniqueSources.map((source) => (
+                    <option key={source} value={source}>
+                      {source}
+                    </option>
+                  ))}
+                </select>
+
+                {(searchTerm || priorityFilter !== "All" || statusFilter !== "All" || sourceFilter !== "All") && (
+                  <button
+                    onClick={() => {
+                      setSearchTerm("");
+                      setPriorityFilter("All");
+                      setStatusFilter("All");
+                      setSourceFilter("All");
+                    }}
+                    className="text-blue-600 hover:text-blue-800 text-xs md:text-sm font-medium border border-blue-200 rounded-lg px-3 py-2"
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Leads Count */}
-          <div className="mb-4 text-sm text-gray-600 flex items-center justify-between">
+          <div className="mb-3 text-xs md:text-sm text-gray-600 flex items-center justify-between">
             {loading ? (
               <span>Loading...</span>
             ) : (
@@ -243,27 +269,103 @@ const LeadsTable = () => {
                   <span className="font-medium">
                     {Math.min(currentPage * rowsPerPage, filteredLeads.length)}
                   </span>{" "}
-                  of <span className="font-medium">{filteredLeads.length}</span> leads
+                  of <span className="font-medium">{filteredLeads.length}</span>
                 </span>
-                {(searchTerm || priorityFilter !== "All" || statusFilter !== "All" || sourceFilter !== "All") && (
-                  <button
-                    onClick={() => {
-                      setSearchTerm("");
-                      setPriorityFilter("All");
-                      setStatusFilter("All");
-                      setSourceFilter("All");
-                    }}
-                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                  >
-                    Clear all filters
-                  </button>
-                )}
               </>
             )}
           </div>
 
-          {/* Table */}
-          <div className="overflow-x-auto border border-gray-200 rounded-lg">
+          {/* Mobile Cards */}
+          <div className="md:hidden space-y-3">
+            {loading ? (
+              <div className="text-center py-8 text-gray-500">Loading leads...</div>
+            ) : paginatedLeads.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">No leads found matching the current filters.</div>
+            ) : (
+              paginatedLeads.map((lead) => (
+                <div key={lead.id} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-medium text-gray-900 truncate">{lead.title || "N/A"}</h3>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleEditClick(lead)}
+                        disabled={loading}
+                        className="text-blue-600 hover:text-blue-800 disabled:opacity-50"
+                        title="Edit"
+                      >
+                        <FiEdit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => deleteLead(lead.id)}
+                        disabled={loading}
+                        className="text-red-600 hover:text-red-800 disabled:opacity-50"
+                        title="Delete"
+                      >
+                        <FiTrash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="text-sm text-gray-500 mb-1">
+                    <span className="font-medium">Customer:</span> {lead.customer_name || "N/A"}
+                  </div>
+                  
+                  <div className="text-sm text-gray-500 mb-1">
+                    <span className="font-medium">Email:</span> {lead.email || "N/A"}
+                  </div>
+                  
+                  <div className="text-sm text-gray-500 mb-1">
+                    <span className="font-medium">Phone:</span> {lead.phone || "N/A"}
+                  </div>
+                  
+                  <div className="text-sm text-gray-500 mb-1">
+                    <span className="font-medium">Service:</span> {lead.source || "N/A"}
+                  </div>
+                  
+                  <div className="flex justify-between items-center mt-3">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(lead.priority).bg
+                        } ${getPriorityColor(lead.priority).text}`}
+                    >
+                      {lead.priority || "N/A"}
+                    </span>
+                    
+                    <div className="relative">
+                      <select
+                        value={lead.status || "New"}
+                        onChange={(e) => updateStatus(lead.id, e.target.value)}
+                        disabled={loading}
+                        className={`block w-full pl-3 pr-8 py-1.5 text-xs border rounded-md focus:outline-none focus:ring-2 appearance-none ${lead.status === "New"
+                            ? "border-blue-200 bg-blue-50 text-blue-800"
+                            : lead.status === "In Progress"
+                              ? "border-yellow-200 bg-yellow-50 text-yellow-800"
+                              : "border-green-200 bg-green-50 text-green-800"
+                          }`}
+                      >
+                        <option value="New">New</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Closed">Closed</option>
+                      </select>
+                      <FiChevronDown className="absolute right-2 top-2 text-gray-400 text-xs pointer-events-none" />
+                    </div>
+                  </div>
+                  
+                  <div className="text-xs text-gray-500 mt-2">
+                    <span className="font-medium">Due:</span> {lead.due_date
+                      ? new Date(lead.due_date).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "2-digit",
+                      })
+                      : "N/A"}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-x-auto border border-gray-200 rounded-lg">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -486,16 +588,16 @@ const LeadsTable = () => {
                 <button
                   onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  className="px-3 py-1 border rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1 border rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                 >
-                  Previous
+                  <FiChevronLeft className="mr-1" /> Previous
                 </button>
                 <button
                   onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-1 border rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1 border rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                 >
-                  Next
+                  Next <FiChevronRight className="ml-1" />
                 </button>
               </div>
             </div>

@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import Teckybot from '../Data/Teckybot.png';
 import { 
-  FiHome, FiUsers, FiPlusCircle, FiUser, FiLogOut, FiMoon, FiSun 
+  FiHome, FiUsers, FiPlusCircle, FiUser, FiLogOut, 
+  FiMoon, FiSun, FiMenu, FiX 
 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 
 const Sidebar = ({ activeTab, setActiveTab }) => {
   const navigate = useNavigate();
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Load theme from localStorage
   useEffect(() => {
@@ -18,7 +20,24 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
     }
   }, []);
 
-  // Toggle handler
+  // Close sidebar when clicking outside on mobile
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (window.innerWidth < 768 && isSidebarOpen) {
+        const sidebar = document.querySelector('.sidebar');
+        const hamburger = document.querySelector('.hamburger-button');
+        if (sidebar && !sidebar.contains(event.target)) {
+          if (!hamburger || !hamburger.contains(event.target)) {
+            setIsSidebarOpen(false);
+          }
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isSidebarOpen]);
+
   const toggleTheme = () => {
     const newMode = !isDarkMode;
     setIsDarkMode(newMode);
@@ -45,14 +64,33 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
 
   return (
     <div className="flex h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-300">
-      <div className="w-64 border-r border-gray-200 dark:border-gray-700 fixed top-0 left-0 bottom-0 shadow-sm z-10 bg-white dark:bg-gray-900">
-        <div className="p-6 pb-4">
+      {/* Mobile Header with Logo and Hamburger */}
+      <header className="md:hidden fixed top-0 left-0 right-0 z-30 bg-white dark:bg-gray-900 shadow-sm h-20 flex items-center px-4">
+        <button 
+          className="p-2 rounded-md hamburger-button"
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        >
+          {isSidebarOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+        </button>
+        <div className="flex-1 flex justify-center">
+          <img src={Teckybot} alt="logo" className="h-12" />
+        </div>
+      </header>
+
+      {/* Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden" onClick={() => setIsSidebarOpen(false)} />
+      )}
+
+      {/* Sidebar */}
+      <div className={`sidebar w-64 border-r border-gray-200 dark:border-gray-700 fixed top-0 left-0 bottom-0 shadow-sm z-20 bg-white dark:bg-gray-900 transition-all duration-300 ease-in-out transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'} md:pt-0 pt-16`}>
+        <div className="p-6 pb-4 hidden md:block">
           <img src={Teckybot} alt="logo" />
         </div>
 
         {/* Theme Toggle */}
         <div className="flex items-center justify-between px-4 py-2 mb-2">
-          <span className="text-sm font-medium">Dark Mode</span>
+          <span className="text-sm ml-6 font-medium">Mode</span>
           <button onClick={toggleTheme} className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700">
             {isDarkMode ? <FiSun /> : <FiMoon />}
           </button>
@@ -63,7 +101,10 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
             {menuItems.map((item) => (
               <li key={item.id}>
                 <button
-                  onClick={() => setActiveTab(item.id)}
+                  onClick={() => {
+                    setActiveTab(item.id);
+                    if (window.innerWidth < 768) setIsSidebarOpen(false);
+                  }}
                   className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${
                     activeTab === item.id
                       ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 font-medium'
@@ -92,8 +133,9 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
         </div>
       </div>
 
-      <div className="flex-1 ml-64 overflow-auto bg-gray-50 dark:bg-gray-800 text-black dark:text-white transition-all duration-300">
-        {/* Content */}
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto bg-gray-50 dark:bg-gray-800 text-black dark:text-white transition-all duration-300 md:ml-64 pt-16 md:pt-0">
+        {/* Content will go here */}
       </div>
     </div>
   );

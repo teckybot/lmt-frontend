@@ -9,13 +9,16 @@ import {
   FiCalendar,
   FiLoader,
   FiBarChart2,
-  FiPieChart
+  FiPieChart,
+  FiChevronDown,
+  FiChevronUp
 } from 'react-icons/fi';
 
 const Analytics = () => {
   const [analyticsData, setAnalyticsData] = useState(null);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [expandedSection, setExpandedSection] = useState(null);
 
   useEffect(() => {
     const fetchAnalytics = async () => {
@@ -35,7 +38,6 @@ const Analytics = () => {
         });
 
         setAnalyticsData(res.data);
-        console.log('Analytics data received:', res.data); // Debug log
       } catch (err) {
         console.error('Error fetching analytics:', err);
         setError(err.response?.data?.message || err.message);
@@ -46,6 +48,10 @@ const Analytics = () => {
 
     fetchAnalytics();
   }, []);
+
+  const toggleSection = (section) => {
+    setExpandedSection(expandedSection === section ? null : section);
+  };
 
   if (isLoading) {
     return (
@@ -71,7 +77,7 @@ const Analytics = () => {
 
   if (!analyticsData) {
     return (
-      <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 my-4">
+      <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4  my-4">
         <div className="flex items-center">
           <FiAlertCircle className="text-yellow-500 mr-2" />
           <span className="text-yellow-700">No analytics data available</span>
@@ -103,109 +109,167 @@ const Analytics = () => {
   ];
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
-      <header className="mb-6">
+    <div className="p-4 space-y-4 bg-gray-50 mt-16 md:mt-0">
+      
+      <header className="mb-4">
         <h1 className="text-2xl font-bold text-gray-800">Lead Analytics Dashboard</h1>
         <p className="text-gray-600">Overview of your leads and conversions</p>
       </header>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <KPICard 
-          title="Total Leads" 
-          value={stats.total || 0} 
-          icon={<FiBarChart2 className="text-blue-500" />}
-          trend="total"
-        />
-        <KPICard 
-          title="New Leads" 
-          value={stats.new || 0} 
-          icon={<FiUser className="text-green-500" />}
-          trend="new"
-        />
-        <KPICard 
-          title="In Progress" 
-          value={stats.inProgress || 0} 
-          icon={<FiLoader className="text-yellow-500" />}
-          trend="inProgress"
-        />
-        <KPICard 
-          title="Closed Leads" 
-          value={stats.closed || 0} 
-          icon={<FiCheckCircle className="text-purple-500" />}
-          trend="closed"
-        />
+      {/* KPI Cards - 2x2 grid on mobile */}
+      <div className="grid grid-cols-2  gap-4">
+        <div className="col-span-1">
+          <KPICard 
+            title="Total Leads" 
+            value={stats.total || 0} 
+            icon={<FiBarChart2 className="text-blue-500 text-2xl" />}
+            trend="total"
+            large
+          />
+        </div>
+        <div className="col-span-1">
+          <KPICard 
+            title="New Leads" 
+            value={stats.new || 0} 
+            icon={<FiUser className="text-green-500 text-2xl" />}
+            trend="new"
+            large
+          />
+        </div>
+        <div className="col-span-1">
+          <KPICard 
+            title="In Progress" 
+            value={stats.inProgress || 0} 
+            icon={<FiLoader className="text-yellow-500 text-2xl" />}
+            trend="inProgress"
+            large
+          />
+        </div>
+        <div className="col-span-1">
+          <KPICard 
+            title="Closed Leads" 
+            value={stats.closed || 0} 
+            icon={<FiCheckCircle className="text-purple-500 text-2xl" />}
+            trend="closed"
+            large
+          />
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Priority Distribution */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-800">Lead Priorities</h2>
-            <FiPieChart className="text-gray-400" />
-          </div>
-          <div className="space-y-3">
-            {priorityData.map((item) => (
-              <div key={item.name} className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div 
-                    className="w-3 h-3 rounded-full mr-2" 
-                    style={{ backgroundColor: item.color }}
-                  ></div>
-                  <span className="text-gray-600">{item.name}</span>
-                </div>
-                <span className="font-medium">{item.value}</span>
+      {/* Priority Distribution */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-800">Lead Priorities</h2>
+          <FiPieChart className="text-gray-400 text-xl" />
+        </div>
+        <div className="space-y-3">
+          {priorityData.map((item) => (
+            <div key={item.name} className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div 
+                  className="w-4 h-4 rounded-full mr-3" 
+                  style={{ backgroundColor: item.color }}
+                ></div>
+                <span className="text-gray-600">{item.name}</span>
               </div>
-            ))}
-          </div>
-          <div className="mt-4 pt-4 border-t border-gray-100">
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">Conversion Rate</span>
-              <span className="font-semibold text-blue-600">{conversionRate}%</span>
+              <span className="font-medium text-lg">{item.value}</span>
             </div>
+          ))}
+        </div>
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <div className="flex items-center justify-between">
+            <span className="text-gray-600">Conversion Rate</span>
+            <span className="font-semibold text-blue-600 text-lg">{conversionRate}%</span>
           </div>
         </div>
+      </div>
 
-        {/* Upcoming Leads */}
-        <LeadSection 
-          title="Upcoming Due Leads" 
+      {/* Upcoming Leads */}
+      <CollapsibleSection 
+        title="Upcoming Due Leads" 
+        isExpanded={expandedSection === 'upcoming'}
+        onToggle={() => toggleSection('upcoming')}
+        icon={<FiClock className="text-blue-500 text-xl" />}
+      >
+        <LeadList 
           leads={upcomingLeads} 
-          icon={<FiClock className="text-blue-500" />}
           emptyMessage="No upcoming leads"
         />
+      </CollapsibleSection>
 
-        {/* Overdue Leads */}
-        <LeadSection 
-          title="Overdue Leads" 
+      {/* Overdue Leads */}
+      <CollapsibleSection 
+        title="Overdue Leads" 
+        isExpanded={expandedSection === 'overdue'}
+        onToggle={() => toggleSection('overdue')}
+        icon={<FiAlertCircle className="text-red-500 text-xl" />}
+      >
+        <LeadList 
           leads={overdueLeads} 
-          icon={<FiAlertCircle className="text-red-500" />}
           emptyMessage="No overdue leads"
         />
-      </div>
+      </CollapsibleSection>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Leads */}
-        <LeadSection 
-          title="Recent Leads (Last 5 Days)" 
+      {/* Recent Leads */}
+      <CollapsibleSection 
+        title="Recent Leads (5 Days)" 
+        isExpanded={expandedSection === 'recent'}
+        onToggle={() => toggleSection('recent')}
+        icon={<FiTrendingUp className="text-green-500 text-xl" />}
+      >
+        <LeadList 
           leads={recentLeads} 
-          icon={<FiTrendingUp className="text-green-500" />}
-          emptyMessage="No recent leads in the last 5 days"
+          emptyMessage="No recent leads"
         />
+      </CollapsibleSection>
 
-        {/* Recently Closed Leads */}
-        <LeadSection 
-          title="Recently Closed Leads (Last 5 Days)" 
+      {/* Recently Closed Leads */}
+      <CollapsibleSection 
+        title="Recently Closed (5 Days)" 
+        isExpanded={expandedSection === 'closed'}
+        onToggle={() => toggleSection('closed')}
+        icon={<FiCheckCircle className="text-purple-500 text-xl" />}
+      >
+        <LeadList 
           leads={recentlyClosedLeads} 
-          icon={<FiCheckCircle className="text-purple-500" />}
-          emptyMessage="No recently closed leads in the last 5 days"
+          emptyMessage="No closed leads"
         />
-      </div>
+      </CollapsibleSection>
     </div>
   );
 };
 
-// Enhanced KPI Card Component
-const KPICard = ({ title, value, icon, trend }) => {
+// Collapsible Section Component
+const CollapsibleSection = ({ title, isExpanded, onToggle, icon, children }) => {
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <button 
+        onClick={onToggle}
+        className="w-full flex items-center justify-between p-5 text-left"
+      >
+        <div className="flex items-center">
+          <h2 className="font-semibold text-lg text-gray-800">{title}</h2>
+        </div>
+        <div className="flex items-center">
+          {icon}
+          {isExpanded ? (
+            <FiChevronUp className="ml-3 text-gray-400 text-xl" />
+          ) : (
+            <FiChevronDown className="ml-3 text-gray-400 text-xl" />
+          )}
+        </div>
+      </button>
+      {isExpanded && (
+        <div className="p-5 border-t border-gray-100">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Larger KPI Card Component
+const KPICard = ({ title, value, icon, trend, large }) => {
   const trendData = {
     total: { value: '+12%', color: 'text-green-500' },
     new: { value: '+5%', color: 'text-green-500' },
@@ -214,38 +278,32 @@ const KPICard = ({ title, value, icon, trend }) => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-      <div className="flex justify-between items-start">
+    <div className={`bg-white ${large ? 'p-5' : 'p-4'} rounded-xl shadow-sm border border-gray-100 h-full`}>
+      <div className="flex justify-between items-start h-full">
         <div>
-          <p className="text-sm font-medium text-gray-500">{title}</p>
-          <h3 className="text-2xl font-bold mt-1">{value}</h3>
+          <p className={`${large ? 'text-sm' : 'text-xs'} font-medium text-gray-500`}>{title}</p>
+          <h3 className={`${large ? 'text-3xl' : 'text-2xl'} font-bold mt-2`}>{value}</h3>
+          <div className="mt-3 flex items-center">
+            <span className={`${large ? 'text-sm' : 'text-xs'} font-medium ${trendData[trend].color}`}>
+              {trendData[trend].value}
+            </span>
+            <span className="text-gray-500 text-xs ml-1">vs last week</span>
+          </div>
         </div>
-        <div className="p-2 rounded-lg bg-gray-50">
+        <div className={`${large ? 'p-3' : 'p-2'} rounded-lg bg-gray-50 self-center`}>
           {icon}
         </div>
-      </div>
-      <div className="mt-4 flex items-center">
-        <span className={`text-sm font-medium ${trendData[trend].color}`}>
-          {trendData[trend].value}
-        </span>
-        <span className="text-gray-500 text-sm ml-1">vs last week</span>
       </div>
     </div>
   );
 };
 
-// Enhanced Lead Section Component
-const LeadSection = ({ title, leads, icon, emptyMessage }) => {
-  console.log(`${title} data:`, leads); // Debug log
+// Lead List Component
+const LeadList = ({ leads, emptyMessage }) => {
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
-        {icon}
-      </div>
-      
+    <>
       {(!leads || leads.length === 0) ? (
-        <div className="text-center py-8">
+        <div className="text-center py-6">
           <p className="text-gray-400">{emptyMessage}</p>
         </div>
       ) : (
@@ -253,29 +311,29 @@ const LeadSection = ({ title, leads, icon, emptyMessage }) => {
           {leads.map((lead) => (
             <li 
               key={lead.id || lead._id} 
-              className="p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
+              className="p-4 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
             >
               <div className="flex justify-between items-start">
-                <div>
+                <div className="pr-3">
                   <p className="font-medium text-gray-800">{lead.title || 'Untitled Lead'}</p>
                   <p className="text-sm text-gray-600 mt-1">
                     <span className="font-medium">{lead.customer_name || 'Unknown'}</span>
                   </p>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex flex-col items-end space-y-2">
                   <PriorityBadge priority={lead.priority} />
                   <StatusBadge status={lead.status} />
                 </div>
               </div>
-              <div className="flex items-center mt-2 text-sm text-gray-500">
-                <FiCalendar className="mr-1" />
+              <div className="flex items-center mt-3 text-sm text-gray-500">
+                <FiCalendar className="mr-2" />
                 <span>Due: {lead.due_date ? new Date(lead.due_date).toLocaleDateString() : 'N/A'}</span>
               </div>
             </li>
           ))}
         </ul>
       )}
-    </div>
+    </>
   );
 };
 
@@ -288,7 +346,7 @@ const PriorityBadge = ({ priority }) => {
   };
 
   return (
-    <span className={`text-xs px-2 py-1 rounded-full ${priorityStyles[priority?.toLowerCase()] || 'bg-gray-100 text-gray-800'}`}>
+    <span className={`text-xs px-3 py-1.5 rounded-full ${priorityStyles[priority?.toLowerCase()] || 'bg-gray-100 text-gray-800'}`}>
       {priority || 'Unknown'}
     </span>
   );
@@ -304,7 +362,7 @@ const StatusBadge = ({ status }) => {
   };
 
   return (
-    <span className={`text-xs px-2 py-1 rounded-full ${statusStyles[status?.toLowerCase()] || 'bg-gray-100 text-gray-800'}`}>
+    <span className={`text-xs px-3 py-1.5 rounded-full ${statusStyles[status?.toLowerCase()] || 'bg-gray-100 text-gray-800'}`}>
       {status || 'Unknown'}
     </span>
   );

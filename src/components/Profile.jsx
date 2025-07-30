@@ -99,7 +99,7 @@ const Profile = () => {
 
   if (profileError && activityError) {
     return (
-      <div className="bg-white shadow rounded-lg p-6 text-center">
+      <div className="bg-white shadow rounded-lg p-6 text-center ">
         <p className="text-red-500">Profile Error: {profileError}</p>
         <p className="text-red-500">Activity Error: {activityError}</p>
         <button
@@ -129,7 +129,7 @@ const Profile = () => {
   }
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
+    <div className="bg-white shadow rounded-lg p-6  mt-16 md:mt-0">
       <h2 className="text-xl font-semibold text-gray-800 mb-6">My Profile</h2>
       
       {profileError && (
