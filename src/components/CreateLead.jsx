@@ -6,18 +6,20 @@ import { FiChevronDown, FiCalendar, FiUser, FiMail, FiPhone, FiFileText, FiX } f
 const CreateLead = () => {
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
+  // Initial form state
+  const initialFormState = {
     title: "",
     customer_name: "",
     phone: "",
     email: "",
-    services: [], // Changed from source to services (array)
-    otherServices: [], // Changed from otherSource to otherServices (array)
+    services: [],
+    otherServices: [],
     due_date: "",
     priority: "medium",
     notes: ""
-  });
+  };
 
+  const [formData, setFormData] = useState(initialFormState);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showServiceDropdown, setShowServiceDropdown] = useState(false);
@@ -71,13 +73,11 @@ const CreateLead = () => {
     }
 
     if (formData.services.includes(service)) {
-      // Remove service if already selected
       setFormData({
         ...formData,
         services: formData.services.filter(s => s !== service)
       });
     } else {
-      // Add service if not selected
       setFormData({
         ...formData,
         services: [...formData.services, service]
@@ -128,6 +128,14 @@ const CreateLead = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const resetForm = () => {
+    setFormData(initialFormState);
+    setErrors({});
+    setOtherServiceInput("");
+    setShowOtherServiceInput(false);
+    setShowServiceDropdown(false);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -137,15 +145,13 @@ const CreateLead = () => {
     
     try {
       const token = localStorage.getItem("token");
-      // Combine both services and otherServices into a single string
       const allServices = [...formData.services, ...formData.otherServices].join(", ");
       
       const payload = { 
         ...formData,
-        source: allServices // Use "source" field instead of "services" to match backend expectation
+        source: allServices
       };
       
-      // Remove the services and otherServices fields
       delete payload.services;
       delete payload.otherServices;
       
@@ -154,7 +160,7 @@ const CreateLead = () => {
       });
       
       alert("Lead created successfully!");
-      navigate("/dashboard");
+      resetForm(); // Reset the form after successful submission
     } catch (err) {
       console.error(err);
       alert(err.response?.data?.message || "Error creating lead");
@@ -296,7 +302,7 @@ const CreateLead = () => {
             )}
           </div>
 
-          {/* Other Services Input (shown only when "Other" is selected) */}
+          {/* Other Services Input */}
           {showOtherServiceInput && (
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
