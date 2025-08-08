@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import Teckybot from '../Data/Teckybot.png';
+import React, { useEffect, useState } from "react";
+import Teckybot from "../Data/Teckybot.png";
 import { 
   FiHome, FiUsers, FiPlusCircle, FiUser, FiLogOut, 
   FiMoon, FiSun, FiMenu, FiX 
-} from 'react-icons/fi';
-import { useNavigate } from 'react-router-dom';
+} from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 
 const Sidebar = ({ activeTab, setActiveTab }) => {
   const navigate = useNavigate();
@@ -13,9 +13,9 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
 
   // Load theme from localStorage
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-      document.documentElement.classList.add('dark');
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      document.documentElement.classList.add("dark");
       setIsDarkMode(true);
     }
   }, []);
@@ -24,8 +24,8 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (window.innerWidth < 768 && isSidebarOpen) {
-        const sidebar = document.querySelector('.sidebar');
-        const hamburger = document.querySelector('.hamburger-button');
+        const sidebar = document.querySelector(".sidebar");
+        const hamburger = document.querySelector(".hamburger-button");
         if (sidebar && !sidebar.contains(event.target)) {
           if (!hamburger || !hamburger.contains(event.target)) {
             setIsSidebarOpen(false);
@@ -34,27 +34,28 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isSidebarOpen]);
 
   const toggleTheme = () => {
     const newMode = !isDarkMode;
     setIsDarkMode(newMode);
     if (newMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
     } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
     }
   };
 
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: <FiHome className="text-lg" /> },
-    { id: 'leads', label: 'Leads', icon: <FiUsers className="text-lg" /> },
-    { id: 'CreateLead', label: 'Create Lead', icon: <FiPlusCircle className="text-lg" /> },
-    { id: 'profile', label: 'Profile', icon: <FiUser className="text-lg" /> }
+    { id: "dashboard", label: "Dashboard", icon: <FiHome className="text-lg" /> },
+    { id: "leads", label: "Leads", icon: <FiUsers className="text-lg" /> },
+    { id: "CreateLead", label: "Create Lead", icon: <FiPlusCircle className="text-lg" /> },
+    { id: "profile", label: "Profile", icon: <FiUser className="text-lg" /> },
+    { id: "tasks", label: "Tasks", icon: <FiUsers className="text-lg" /> } // Added Tasks
   ];
 
   const handleLogout = () => {
@@ -83,7 +84,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
       )}
 
       {/* Sidebar */}
-      <div className={`sidebar w-64 border-r border-gray-200 dark:border-gray-700 fixed top-0 left-0 bottom-0 shadow-sm z-20 bg-white dark:bg-gray-900 transition-all duration-300 ease-in-out transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'} md:pt-0 pt-16`}>
+      <div className={`sidebar w-64 border-r border-gray-200 dark:border-gray-700 fixed top-0 left-0 bottom-0 shadow-sm z-20 bg-white dark:bg-gray-900 transition-all duration-300 ease-in-out transform ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"} md:pt-0 pt-16`}>
         <div className="p-6 pb-4 hidden md:block">
           <img src={Teckybot} alt="logo" />
         </div>
@@ -107,11 +108,11 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
                   }}
                   className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${
                     activeTab === item.id
-                      ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 font-medium'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      ? "bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 font-medium"
+                      : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                   }`}
                 >
-                  <span className={`mr-3 ${activeTab === item.id ? 'text-blue-500' : 'text-gray-400'}`}>
+                  <span className={`mr-3 ${activeTab === item.id ? "text-blue-500" : "text-gray-400"}`}>
                     {item.icon}
                   </span>
                   {item.label}
@@ -135,7 +136,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto bg-gray-50 dark:bg-gray-800 text-black dark:text-white transition-all duration-300 md:ml-64 pt-16 md:pt-0">
-        {/* Content will go here */}
+        {/* Content will be rendered by the router */}
       </div>
     </div>
   );

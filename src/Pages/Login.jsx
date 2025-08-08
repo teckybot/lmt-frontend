@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { FiMail, FiLock, FiLogIn } from "react-icons/fi";
-import Teckybot from '../Data/Teckybot.png';
+import Teckybot from "../Data/Teckybot.png";
 
 const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -16,14 +16,46 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    console.log("Form data being sent:", form); // Debug log
     try {
-      const res = await axios.post("https://lmt-backend.onrender.com/api/auth/login", form);
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
-      navigate("/dashboard");
+      const res = await axios.post("http://localhost:5000/api/auth/login", form, {
+        headers: { "Content-Type": "application/json" },
+      });
+      console.log("Full response:", res.data); // Log the entire response
+      const { token, user } = res.data;
+      if (!user) {
+        throw new Error("User data missing in response");
+      }
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user)); // Stores { id, name, email, role }
+      const role = user.role;
+
+      // Redirect based on role
+      switch (role) {
+        case "super_admin":
+          navigate("/dashboard");
+          break;
+        case "admin":
+          navigate("/admin-dashboard");
+          break;
+        case "employee":
+          navigate("/employee-dashboard");
+          break;
+        default:
+          navigate("/");
+          alert("Unknown role. Please contact admin.");
+      }
     } catch (err) {
-      alert(err.response?.data?.message || "Login failed. Please try again.");
-      console.error(err);
+      console.error("Login error:", {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+      });
+      alert(
+        err.response?.data?.message ||
+        err.message ||
+        "Login failed. Please try again later."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -34,8 +66,8 @@ const Login = () => {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
           <div className="">
-          <img src={Teckybot} className="w-48" alt="teckybot" />
-        </div>
+            <img src={Teckybot} className="w-48" alt="teckybot" />
+          </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
           Sign in to your account

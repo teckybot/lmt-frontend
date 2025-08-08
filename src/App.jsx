@@ -7,8 +7,9 @@ import PrivateRoute from "./components/PrivateRoute";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import Leads from "./components/Leads";
-import 'jspdf-autotable';
-
+import AdminDashboard from "./Pages/AdminDashboard"; // Create this file
+import EmployeeDashboard from "./Pages/EmployeeDashboard"; // Create this file
+import "jspdf-autotable";
 
 function App() {
   return (
@@ -27,8 +28,24 @@ function App() {
             </PrivateRoute>
           }
         />
-        
+        <Route
+          path="/admin-dashboard"
+          element={
+            <PrivateRoute>
+              <AdminDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/employee-dashboard"
+          element={
+            <PrivateRoute>
+              <EmployeeDashboard />
+            </PrivateRoute>
+          }
+        />
       </Routes>
+      <ToastContainer />
     </Router>
   );
 }

@@ -53,7 +53,7 @@ const Profile = () => {
       try {
         // Fetch user activity
         setActivityLoading(true);
-        const activityRes = await axios.get('https://lmt-backend.onrender.com/api/user/activity', {
+        const activityRes = await axios.get('http://localhost:5000/api/user/activity', {
           headers: { Authorization: `Bearer ${token}` }
         });
         console.log('Activity API Response:', activityRes.data); // Debug log
@@ -260,7 +260,7 @@ const Profile = () => {
                   <h4 className="text-sm font-medium text-gray-500">Leads Converted</h4>
                   <p className="text-2xl font-bold text-gray-900">{user.leadsConverted ?? '0'}</p>
                 </div>
-              </div>
+              </div>  
 
               <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Activity</h3>
               {activityError && (
@@ -268,10 +268,10 @@ const Profile = () => {
               )}
               {activityLoading ? (
                 <div className="flex justify-center items-center h-32">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div> 
                 </div>
               ) : activity.length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-4"> 
                   {activity.map((item, index) => (
                     <div key={index} className="bg-white p-4 rounded shadow">
                       <div className="flex justify-between">
