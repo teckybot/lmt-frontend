@@ -56,7 +56,7 @@ const Dashboard = () => {
     const token = localStorage.getItem("token");
     try {
       await axios.put(
-        `http://localhost:5000/api/leads/${leadId}/status`,
+        `https://lmt-backend.onrender.com/api/leads/${leadId}/status`,
         { status: newStatus },
         {
           headers: { Authorization: `Bearer ${token}` },

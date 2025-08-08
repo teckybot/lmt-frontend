@@ -18,7 +18,7 @@ const Login = () => {
     setIsLoading(true);
     console.log("Form data being sent:", form); // Debug log
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", form, {
+      const res = await axios.post("https://lmt-backend.onrender.com/api/auth/login", form, {
         headers: { "Content-Type": "application/json" },
       });
       console.log("Full response:", res.data); // Log the entire response

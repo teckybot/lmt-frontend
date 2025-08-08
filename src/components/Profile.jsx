@@ -53,7 +53,7 @@ const Profile = () => {
       try {
         // Fetch user activity
         setActivityLoading(true);
-        const activityRes = await axios.get('http://localhost:5000/api/user/activity', {
+        const activityRes = await axios.get('https://lmt-backend.onrender.com/api/user/activity', {
           headers: { Authorization: `Bearer ${token}` }
         });
         console.log('Activity API Response:', activityRes.data); // Debug log

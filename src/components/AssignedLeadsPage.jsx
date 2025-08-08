@@ -16,7 +16,7 @@ const AssignedLeadsPage = () => {
           setLoading(false);
           return;
         }
-        const response = await axios.get("http://localhost:5000/api/leads/assigned", {
+        const response = await axios.get("https://lmt-backend.onrender.com/api/leads/assigned", {
           headers: { Authorization: `Bearer ${token}` },
         });
         console.log("Fetched leads:", response.data); // Debug log
