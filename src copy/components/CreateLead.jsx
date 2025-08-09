@@ -1,26 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-<<<<<<< HEAD
 import { FiChevronDown, FiCalendar, FiUser, FiMail, FiPhone, FiFileText, FiX } from "react-icons/fi";
-=======
-import { FiChevronDown, FiCalendar, FiUser, FiMail, FiPhone, FiFileText } from "react-icons/fi";
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
 
 const CreateLead = () => {
   const navigate = useNavigate();
 
-<<<<<<< HEAD
   // Initial form state
   const initialFormState = {
-=======
-  const [formData, setFormData] = useState({
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
     title: "",
     customer_name: "",
     phone: "",
     email: "",
-<<<<<<< HEAD
     services: [],
     otherServices: [],
     due_date: "",
@@ -34,13 +25,6 @@ const CreateLead = () => {
   const [showServiceDropdown, setShowServiceDropdown] = useState(false);
   const [showOtherServiceInput, setShowOtherServiceInput] = useState(false);
   const [otherServiceInput, setOtherServiceInput] = useState("");
-=======
-    source: "",
-    due_date: "",
-    priority: "medium", // Default to medium
-    notes: ""
-  });
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
 
   const priorityOptions = [
     { value: "high", label: "High" },
@@ -48,7 +32,6 @@ const CreateLead = () => {
     { value: "low", label: "Low" }
   ];
 
-<<<<<<< HEAD
   const serviceOptions = [
     "Year Long Programme",
     "STEM Labs",
@@ -63,8 +46,6 @@ const CreateLead = () => {
     "Other"
   ];
 
-=======
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -73,7 +54,6 @@ const CreateLead = () => {
   }, [navigate]);
 
   const handleChange = (e) => {
-<<<<<<< HEAD
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
     
@@ -154,14 +134,10 @@ const CreateLead = () => {
     setOtherServiceInput("");
     setShowOtherServiceInput(false);
     setShowServiceDropdown(false);
-=======
-    setFormData({ ...formData, [e.target.name]: e.target.value });
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-<<<<<<< HEAD
     
     if (!validateForm()) return;
     
@@ -190,18 +166,6 @@ const CreateLead = () => {
       alert(err.response?.data?.message || "Error creating lead");
     } finally {
       setIsSubmitting(false);
-=======
-    try {
-      const token = localStorage.getItem("token");
-      await axios.post("http://localhost:5000/api/leads", formData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      alert("Lead created successfully!");
-      navigate("/dashboard");
-    } catch (err) {
-      alert("Error creating lead");
-      console.error(err);
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
     }
   };
 
@@ -211,16 +175,11 @@ const CreateLead = () => {
     { label: "Customer Name", name: "customer_name", icon: <FiUser className="text-gray-400" /> },
     { label: "Phone", name: "phone", icon: <FiPhone className="text-gray-400" /> },
     { label: "Email", name: "email", type: "email", icon: <FiMail className="text-gray-400" /> },
-<<<<<<< HEAD
-=======
-    { label: "Source", name: "source", icon: <FiFileText className="text-gray-400" /> },
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
     { label: "Due Date", name: "due_date", type: "date", icon: <FiCalendar className="text-gray-400" /> },
     { label: "Notes", name: "notes", icon: <FiFileText className="text-gray-400" /> }
   ];
 
   return (
-<<<<<<< HEAD
     <div className="max-w-2xl mx-auto p-4 sm:p-6 mt-16 md:mt-0">
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <h2 className="text-4xl text-center font-bold text-gray-800 mb-6">Create New Lead</h2>
@@ -232,23 +191,12 @@ const CreateLead = () => {
                 {label}
                 {name !== "notes" && <span className="text-red-500">*</span>}
               </label>
-=======
-    <div className="max-w-2xl mx-auto p-6">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Create New Lead</h2>
-        
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {fields.map(({ label, name, type = "text", icon }) => (
-            <div key={name} className="space-y-1">
-              <label className="block text-sm font-medium text-gray-700">{label}</label>
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
               <div className="relative">
                 {icon && (
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     {icon}
                   </div>
                 )}
-<<<<<<< HEAD
                 {type === "date" ? (
                   <input
                     type={type}
@@ -379,20 +327,6 @@ const CreateLead = () => {
             </div>
           )}
 
-=======
-                <input
-                  type={type}
-                  name={name}
-                  value={formData[name]}
-                  onChange={handleChange}
-                  required={name !== "notes"}
-                  className={`block w-full ${icon ? 'pl-10' : 'pl-3'} pr-3 py-2 border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                />
-              </div>
-            </div>
-          ))}
-
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
           {/* Priority Dropdown */}
           <div className="space-y-1">
             <label className="block text-sm font-medium text-gray-700">Priority</label>
@@ -417,27 +351,17 @@ const CreateLead = () => {
             <button
               type="button"
               onClick={() => navigate("/dashboard")}
-<<<<<<< HEAD
               disabled={isSubmitting}
               className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
-=======
-              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
             >
               Cancel
             </button>
             <button
               type="submit"
-<<<<<<< HEAD
               disabled={isSubmitting}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50"
             >
               {isSubmitting ? "Creating..." : "Create Lead"}
-=======
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-            >
-              Create Lead
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
             </button>
           </div>
         </form>

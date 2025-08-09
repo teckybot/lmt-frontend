@@ -4,7 +4,8 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
-  darkMode: 'class', // ⬅️ this is required for dark mode support
+
+  darkMode: 'class', 
   theme: {
     extend: {},
   },

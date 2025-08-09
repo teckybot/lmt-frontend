@@ -9,23 +9,16 @@ import {
   FiCalendar,
   FiLoader,
   FiBarChart2,
-<<<<<<< HEAD
   FiPieChart,
   FiChevronDown,
   FiChevronUp
-=======
-  FiPieChart
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
 } from 'react-icons/fi';
 
 const Analytics = () => {
   const [analyticsData, setAnalyticsData] = useState(null);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-<<<<<<< HEAD
   const [expandedSection, setExpandedSection] = useState(null);
-=======
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
 
   useEffect(() => {
     const fetchAnalytics = async () => {
@@ -38,11 +31,7 @@ const Analytics = () => {
           return;
         }
 
-<<<<<<< HEAD
         const res = await axios.get('https://lmt-backend.onrender.com/api/leads/analytics', {
-=======
-        const res = await axios.get('http://localhost:5000/api/leads/analytics', {
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -60,13 +49,10 @@ const Analytics = () => {
     fetchAnalytics();
   }, []);
 
-<<<<<<< HEAD
   const toggleSection = (section) => {
     setExpandedSection(expandedSection === section ? null : section);
   };
 
-=======
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -91,11 +77,7 @@ const Analytics = () => {
 
   if (!analyticsData) {
     return (
-<<<<<<< HEAD
       <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4  my-4">
-=======
-      <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 my-4">
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
         <div className="flex items-center">
           <FiAlertCircle className="text-yellow-500 mr-2" />
           <span className="text-yellow-700">No analytics data available</span>
@@ -127,19 +109,13 @@ const Analytics = () => {
   ];
 
   return (
-<<<<<<< HEAD
     <div className="p-4 space-y-4 bg-gray-50 mt-16 md:mt-0">
       
       <header className="mb-4">
-=======
-    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
-      <header className="mb-6">
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
         <h1 className="text-2xl font-bold text-gray-800">Lead Analytics Dashboard</h1>
         <p className="text-gray-600">Overview of your leads and conversions</p>
       </header>
 
-<<<<<<< HEAD
       {/* KPI Cards - 2x2 grid on mobile */}
       <div className="grid grid-cols-2  gap-4">
         <div className="col-span-1">
@@ -259,104 +235,10 @@ const Analytics = () => {
           emptyMessage="No closed leads"
         />
       </CollapsibleSection>
-=======
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <KPICard 
-          title="Total Leads" 
-          value={stats.total || 0} 
-          icon={<FiBarChart2 className="text-blue-500" />}
-          trend="total"
-        />
-        <KPICard 
-          title="New Leads" 
-          value={stats.new || 0} 
-          icon={<FiUser className="text-green-500" />}
-          trend="new"
-        />
-        <KPICard 
-          title="In Progress" 
-          value={stats.inProgress || 0} 
-          icon={<FiLoader className="text-yellow-500" />}
-          trend="inProgress"
-        />
-        <KPICard 
-          title="Closed Leads" 
-          value={stats.closed || 0} 
-          icon={<FiCheckCircle className="text-purple-500" />}
-          trend="closed"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Priority Distribution */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-800">Lead Priorities</h2>
-            <FiPieChart className="text-gray-400" />
-          </div>
-          <div className="space-y-3">
-            {priorityData.map((item) => (
-              <div key={item.name} className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div 
-                    className="w-3 h-3 rounded-full mr-2" 
-                    style={{ backgroundColor: item.color }}
-                  ></div>
-                  <span className="text-gray-600">{item.name}</span>
-                </div>
-                <span className="font-medium">{item.value}</span>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 pt-4 border-t border-gray-100">
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">Conversion Rate</span>
-              <span className="font-semibold text-blue-600">{conversionRate}%</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Upcoming Leads */}
-        <LeadSection 
-          title="Upcoming Due Leads" 
-          leads={upcomingLeads} 
-          icon={<FiClock className="text-blue-500" />}
-          emptyMessage="No upcoming leads"
-        />
-
-        {/* Overdue Leads */}
-        <LeadSection 
-          title="Overdue Leads" 
-          leads={overdueLeads} 
-          icon={<FiAlertCircle className="text-red-500" />}
-          emptyMessage="No overdue leads"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Leads */}
-        <LeadSection 
-          title="Recent Leads" 
-          leads={recentLeads} 
-          icon={<FiTrendingUp className="text-green-500" />}
-          emptyMessage="No recent leads"
-        />
-
-        {/* Recently Closed Leads */}
-        <LeadSection 
-          title="Recently Closed Leads" 
-          leads={recentlyClosedLeads} 
-          icon={<FiCheckCircle className="text-purple-500" />}
-          emptyMessage="No recently closed leads"
-        />
-      </div>
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
     </div>
   );
 };
 
-<<<<<<< HEAD
 // Collapsible Section Component
 const CollapsibleSection = ({ title, isExpanded, onToggle, icon, children }) => {
   return (
@@ -388,11 +270,6 @@ const CollapsibleSection = ({ title, isExpanded, onToggle, icon, children }) => 
 
 // Larger KPI Card Component
 const KPICard = ({ title, value, icon, trend, large }) => {
-=======
-// Enhanced KPI Card Component
-const KPICard = ({ title, value, icon, trend }) => {
-  // This would be more dynamic in a real app with actual trend data
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
   const trendData = {
     total: { value: '+12%', color: 'text-green-500' },
     new: { value: '+5%', color: 'text-green-500' },
@@ -401,7 +278,6 @@ const KPICard = ({ title, value, icon, trend }) => {
   };
 
   return (
-<<<<<<< HEAD
     <div className={`bg-white ${large ? 'p-5' : 'p-4'} rounded-xl shadow-sm border border-gray-100 h-full`}>
       <div className="flex justify-between items-start h-full">
         <div>
@@ -418,48 +294,16 @@ const KPICard = ({ title, value, icon, trend }) => {
           {icon}
         </div>
       </div>
-=======
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-      <div className="flex justify-between items-start">
-        <div>
-          <p className="text-sm font-medium text-gray-500">{title}</p>
-          <h3 className="text-2xl font-bold mt-1">{value}</h3>
-        </div>
-        <div className="p-2 rounded-lg bg-gray-50">
-          {icon}
-        </div>
-      </div>
-      <div className="mt-4 flex items-center">
-        <span className={`text-sm font-medium ${trendData[trend].color}`}>
-          {trendData[trend].value}
-        </span>
-        <span className="text-gray-500 text-sm ml-1">vs last week</span>
-      </div>
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
     </div>
   );
 };
 
-<<<<<<< HEAD
 // Lead List Component
 const LeadList = ({ leads, emptyMessage }) => {
   return (
     <>
       {(!leads || leads.length === 0) ? (
         <div className="text-center py-6">
-=======
-// Enhanced Lead Section Component
-const LeadSection = ({ title, leads, icon, emptyMessage }) => {
-  return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
-        {icon}
-      </div>
-      
-      {(!leads || leads.length === 0) ? (
-        <div className="text-center py-8">
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
           <p className="text-gray-400">{emptyMessage}</p>
         </div>
       ) : (
@@ -467,7 +311,6 @@ const LeadSection = ({ title, leads, icon, emptyMessage }) => {
           {leads.map((lead) => (
             <li 
               key={lead.id || lead._id} 
-<<<<<<< HEAD
               className="p-4 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
             >
               <div className="flex justify-between items-start">
@@ -478,40 +321,19 @@ const LeadSection = ({ title, leads, icon, emptyMessage }) => {
                   </p>
                 </div>
                 <div className="flex flex-col items-end space-y-2">
-=======
-              className="p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="font-medium text-gray-800">{lead.title}</p>
-                  <p className="text-sm text-gray-600 mt-1">
-                    <span className="font-medium">{lead.customer_name}</span>
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2">
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
                   <PriorityBadge priority={lead.priority} />
                   <StatusBadge status={lead.status} />
                 </div>
               </div>
-<<<<<<< HEAD
               <div className="flex items-center mt-3 text-sm text-gray-500">
                 <FiCalendar className="mr-2" />
-=======
-              <div className="flex items-center mt-2 text-sm text-gray-500">
-                <FiCalendar className="mr-1" />
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
                 <span>Due: {lead.due_date ? new Date(lead.due_date).toLocaleDateString() : 'N/A'}</span>
               </div>
             </li>
           ))}
         </ul>
       )}
-<<<<<<< HEAD
     </>
-=======
-    </div>
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
   );
 };
 
@@ -524,11 +346,7 @@ const PriorityBadge = ({ priority }) => {
   };
 
   return (
-<<<<<<< HEAD
     <span className={`text-xs px-3 py-1.5 rounded-full ${priorityStyles[priority?.toLowerCase()] || 'bg-gray-100 text-gray-800'}`}>
-=======
-    <span className={`text-xs px-2 py-1 rounded-full ${priorityStyles[priority] || 'bg-gray-100 text-gray-800'}`}>
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
       {priority || 'Unknown'}
     </span>
   );
@@ -544,11 +362,7 @@ const StatusBadge = ({ status }) => {
   };
 
   return (
-<<<<<<< HEAD
     <span className={`text-xs px-3 py-1.5 rounded-full ${statusStyles[status?.toLowerCase()] || 'bg-gray-100 text-gray-800'}`}>
-=======
-    <span className={`text-xs px-2 py-1 rounded-full ${statusStyles[status?.toLowerCase()] || 'bg-gray-100 text-gray-800'}`}>
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
       {status || 'Unknown'}
     </span>
   );

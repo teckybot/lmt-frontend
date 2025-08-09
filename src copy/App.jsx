@@ -1,23 +1,15 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-<<<<<<< HEAD
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-=======
-
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
 import Dashboard from "./Pages/Dashboard";
 import Login from "./Pages/Login";
 import PrivateRoute from "./components/PrivateRoute";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import Leads from "./components/Leads";
-<<<<<<< HEAD
 import AdminDashboard from "./Pages/AdminDashboard"; // Create this file
 import EmployeeDashboard from "./Pages/EmployeeDashboard"; // Create this file
 import "jspdf-autotable";
-=======
-
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
 
 function App() {
   return (
@@ -36,7 +28,6 @@ function App() {
             </PrivateRoute>
           }
         />
-<<<<<<< HEAD
         <Route
           path="/admin-dashboard"
           element={
@@ -55,15 +46,8 @@ function App() {
         />
       </Routes>
       <ToastContainer />
-=======
-      </Routes>
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
     </Router>
   );
 }
 
-<<<<<<< HEAD
 export default App;
-=======
-export default App;
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2

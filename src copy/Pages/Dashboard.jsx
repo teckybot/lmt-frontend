@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -8,82 +7,45 @@ import Leads from "../components/Leads";
 import Profile from "../components/Profile";
 import CreateLead from "../components/CreateLead";
 import AssignedLeadsPage from "../components/AssignedLeadsPage"; // Import the new component
-=======
-import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import DashboardLayout from '../components/DashboardLayout';
-import DashboardHome from '../components/DashboardHome';
-import Leads from '../components/Leads';
-import Profile from '../components/Profile';
-import CreateLead from '../components/CreateLead';
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
 
 const Dashboard = () => {
   const [leads, setLeads] = useState([]);
   const [stats, setStats] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-<<<<<<< HEAD
   const [activeTab, setActiveTab] = useState("dashboard");
-=======
-  const [activeTab, setActiveTab] = useState('dashboard');
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   const fetchLeads = useCallback(async () => {  
-<<<<<<< HEAD
     const token = localStorage.getItem("token");
     if (!token) {
       navigate("/login");
-=======
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
       return;
     }
 
     setIsLoading(true);
     setError(null);
     try {
-<<<<<<< HEAD
       const res = await axios.get("https://lmt-backend.onrender.com/api/leads", {
         headers: { Authorization: `Bearer ${token}` },
-=======
-      const res = await axios.get("http://localhost:5000/api/leads", {
-        headers: { Authorization: `Bearer ${token}` }
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
       });
       setLeads(res.data);
       
       // Calculate stats
       const statsData = {
         total: res.data.length,
-<<<<<<< HEAD
         new: res.data.filter((lead) => lead.status === "New").length,
         inProgress: res.data.filter((lead) => lead.status === "In Progress").length,
         closed: res.data.filter((lead) => lead.status === "Closed").length,
         totalValue: res.data.reduce((sum, lead) => sum + (parseFloat(lead.value) || 0), 0),
-=======
-        new: res.data.filter(lead => lead.status === "New").length,
-        inProgress: res.data.filter(lead => lead.status === "In Progress").length,
-        closed: res.data.filter(lead => lead.status === "Closed").length,
-        totalValue: res.data.reduce((sum, lead) => sum + (parseFloat(lead.value) || 0), 0)
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
       };
       setStats(statsData);
     } catch (err) {
       console.error("Error fetching leads", err);
       setError(err.response?.data?.message || "Failed to load leads");
       if (err.response?.status === 401) {
-<<<<<<< HEAD
         localStorage.removeItem("token");
         navigate("/login");
-=======
-        localStorage.removeItem('token');
-        navigate('/login');
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
       }
     } finally {
       setIsLoading(false);
@@ -91,7 +53,6 @@ const Dashboard = () => {
   }, [navigate]);
 
   const updateStatus = async (leadId, newStatus) => {
-<<<<<<< HEAD
     const token = localStorage.getItem("token");
     try {
       await axios.put(
@@ -99,15 +60,6 @@ const Dashboard = () => {
         { status: newStatus },
         {
           headers: { Authorization: `Bearer ${token}` },
-=======
-    const token = localStorage.getItem('token');
-    try {
-      await axios.put(
-        `http://localhost:5000/api/leads/${leadId}/status`,
-        { status: newStatus },
-        {
-          headers: { Authorization: `Bearer ${token}` }
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
         }
       );
       await fetchLeads(); // Wait for refresh to complete
@@ -121,7 +73,6 @@ const Dashboard = () => {
     fetchLeads();
   }, [fetchLeads]);
 
-<<<<<<< HEAD
 const renderContent = () => {
   console.log("Active tab:", activeTab); // Debug log
   if (isLoading && activeTab !== "CreateLead") {
@@ -167,51 +118,6 @@ const renderContent = () => {
       return <DashboardHome stats={stats} isLoading={isLoading} />;
   }
 };
-=======
-  const renderContent = () => {
-    if (isLoading && activeTab !== 'CreateLead') {
-      return (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
-      );
-    }
-
-    if (error && activeTab !== 'CreateLead') {
-      return (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 my-4">
-          <div className="flex items-center">
-            <div className="text-red-500 mr-2">⚠️</div>
-            <div>
-              <p className="font-medium">Error</p>
-              <p className="text-sm">{error}</p>
-              <button 
-                onClick={fetchLeads}
-                className="mt-2 text-sm text-blue-600 hover:text-blue-800"
-              >
-                Retry
-              </button>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    switch (activeTab) {
-      case 'dashboard':
-        return <DashboardHome stats={stats} isLoading={isLoading} />;
-      case 'leads':
-        return <Leads leads={leads} updateStatus={updateStatus} isLoading={isLoading} />;
-      case 'CreateLead':
-        return <CreateLead onSuccess={fetchLeads} />;
-      case 'profile':
-        return <Profile />;
-      default:
-        return <DashboardHome stats={stats} isLoading={isLoading} />;
-    }
-  };
-
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
   return (
     <DashboardLayout activeTab={activeTab} setActiveTab={setActiveTab}>
       {renderContent()}
