@@ -11,18 +11,14 @@ const Profile = () => {
     phone: '',
     avatar: ''
   });
-<<<<<<< HEAD
   const [profileError, setProfileError] = useState(null);
   const [activityError, setActivityError] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [activityLoading, setActivityLoading] = useState(true);
-=======
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
 
   useEffect(() => {
     const fetchUserData = async () => {
       const token = localStorage.getItem('token');
-<<<<<<< HEAD
       if (!token) {
         setProfileError('No authentication token found. Please log in.');
         setActivityError('No authentication token found. Please log in.');
@@ -68,28 +64,6 @@ const Profile = () => {
         setActivityError(err.response?.data?.message || `Failed to fetch activity data (Status: ${err.response?.status || 'Network Error'}).`);
       } finally {
         setActivityLoading(false);
-=======
-      try {
-        // Fetch user data
-        const userRes = await axios.get('http://localhost:5000/api/user/profile', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setUser(userRes.data);
-        setFormData({
-          name: userRes.data.name,
-          email: userRes.data.email,
-          phone: userRes.data.phone || '',
-          avatar: userRes.data.avatar || ''
-        });
-
-        // Fetch user activity
-        const activityRes = await axios.get('http://localhost:5000/api/user/activity', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setActivity(activityRes.data);
-      } catch (err) {
-        console.error('Error fetching profile data', err);
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
       }
     };
 
@@ -104,7 +78,6 @@ const Profile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
-<<<<<<< HEAD
     if (!token) {
       setProfileError('No authentication token found. Please log in.');
       return;
@@ -112,16 +85,11 @@ const Profile = () => {
 
     try {
       await axios.put('https://lmt-backend.onrender.com/api/user/profile', formData, {
-=======
-    try {
-      await axios.put('http://localhost:5000/api/user/profile', formData, {
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
         headers: { Authorization: `Bearer ${token}` }
       });
       setUser({ ...user, ...formData });
       localStorage.setItem('user', JSON.stringify({ ...user, ...formData }));
       setIsEditing(false);
-<<<<<<< HEAD
       setProfileError(null);
     } catch (err) {
       console.error('Error updating profile:', err.response?.status, err.response?.data, err.message);
@@ -145,14 +113,6 @@ const Profile = () => {
   }
 
   if (profileLoading) {
-=======
-    } catch (err) {
-      console.error('Error updating profile', err);
-    }
-  };
-
-  if (!user) {
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -160,7 +120,6 @@ const Profile = () => {
     );
   }
 
-<<<<<<< HEAD
   if (!user) {
     return (
       <div className="bg-white shadow rounded-lg p-6 text-center">
@@ -177,12 +136,6 @@ const Profile = () => {
         <p className="text-red-500 mb-4">Profile Error: {profileError}</p>
       )}
 
-=======
-  return (
-    <div className="bg-white shadow rounded-lg p-6">
-      <h2 className="text-xl font-semibold text-gray-800 mb-6">My Profile</h2>
-      
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
       <div className="flex flex-col md:flex-row gap-8">
         <div className="md:w-1/3">
           <div className="bg-gray-50 p-6 rounded-lg">
@@ -219,17 +172,10 @@ const Profile = () => {
                   <span className="font-medium">Email:</span> {user.email}
                 </p>
                 <p className="text-sm text-gray-700">
-<<<<<<< HEAD
                   <span className="font-medium">Member Since:</span> {new Date(user.created_at).toLocaleDateString()}
                 </p>
                 <p className="text-sm text-gray-700">
                   <span className="font-medium">Last Login:</span> {new Date(user.last_login).toLocaleString()}
-=======
-                  <span className="font-medium">Member Since:</span> {new Date(user.createdAt).toLocaleDateString()}
-                </p>
-                <p className="text-sm text-gray-700">
-                  <span className="font-medium">Last Login:</span> {new Date(user.lastLogin).toLocaleString()}
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
                 </p>
               </div>
             </div>
@@ -286,7 +232,6 @@ const Profile = () => {
                     />
                   </div>
                 </div>
-<<<<<<< HEAD
                 <button
                   type="submit"
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
@@ -300,8 +245,6 @@ const Profile = () => {
                 >
                   Cancel
                 </button>
-=======
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
               </form>
             </div>
           ) : (
@@ -311,7 +254,6 @@ const Profile = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div className="bg-white p-4 rounded shadow">
                   <h4 className="text-sm font-medium text-gray-500">Leads Added</h4>
-<<<<<<< HEAD
                   <p className="text-2xl font-bold text-gray-900">{user.leadsAdded ?? '0'}</p>
                 </div>
                 <div className="bg-white p-4 rounded shadow">
@@ -345,34 +287,6 @@ const Profile = () => {
               ) : (
                 <p className="text-gray-500 text-center py-4">No recent activity available</p>
               )}
-=======
-                  <p className="text-2xl font-bold text-gray-900">{user.leadsAdded || 0}</p>
-                </div>
-                <div className="bg-white p-4 rounded shadow">
-                  <h4 className="text-sm font-medium text-gray-500">Leads Converted</h4>
-                  <p className="text-2xl font-bold text-gray-900">{user.leadsConverted || 0}</p>
-                </div>
-              </div>
-
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Activity</h3>
-              <div className="space-y-4">
-                {activity.length > 0 ? (
-                  activity.map((item, index) => (
-                    <div key={index} className="bg-white p-4 rounded shadow">
-                      <div className="flex justify-between">
-                        <p className="text-sm font-medium text-gray-900">{item.action}</p>
-                        <p className="text-sm text-gray-500">
-                          {new Date(item.timestamp).toLocaleString()}
-                        </p>
-                      </div>
-                      <p className="text-sm text-gray-500 mt-1">{item.details}</p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-gray-500 text-center py-4">No recent activity</p>
-                )}
-              </div>
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
             </div>
           )}
         </div>

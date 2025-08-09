@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import React from "react";
 import { Navigate } from "react-router-dom";
 
@@ -28,14 +27,3 @@ const PrivateRoute = ({ children }) => {
 };
 
 export default PrivateRoute;
-=======
-import React from 'react';
-import { Navigate } from 'react-router-dom';
-
-const PrivateRoute = ({ children }) => {
-  const token = localStorage.getItem("token");
-  return token ? children : <Navigate to="/g" />;
-};
-
-export default PrivateRoute;
->>>>>>> e0ad9a4458e3e13704124565ccee4bbe935646a2
