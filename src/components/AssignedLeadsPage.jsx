@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+
+import api from "../utils/axiosInstance";
 
 const AssignedLeadsPage = () => {
   const [leads, setLeads] = useState([]);
@@ -16,9 +17,7 @@ const AssignedLeadsPage = () => {
           setLoading(false);
           return;
         }
-        const response = await axios.get("https://lmt-backend.onrender.com/api/leads/assigned", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await api.get('/leads/assigned');
         console.log("Fetched leads:", response.data); // Debug log
         setLeads(response.data);
       } catch (err) {

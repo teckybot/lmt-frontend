@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { 
   FiTrendingUp, 
   FiClock, 
@@ -13,6 +12,9 @@ import {
   FiChevronDown,
   FiChevronUp
 } from 'react-icons/fi';
+
+import api from "../utils/axiosInstance";
+
 
 const Analytics = () => {
   const [analyticsData, setAnalyticsData] = useState(null);
@@ -31,11 +33,7 @@ const Analytics = () => {
           return;
         }
 
-        const res = await axios.get('https://lmt-backend.onrender.com/api/leads/analytics', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+       const res = await api.get("/leads/analytics");
 
         setAnalyticsData(res.data);
       } catch (err) {

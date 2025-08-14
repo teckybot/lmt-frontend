@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { FiMail, FiLock, FiLogIn } from "react-icons/fi";
 import Teckybot from "../Data/Teckybot.png";
+
+import api from "../utils/axiosInstance"; 
+import { API_BASE_URL } from "../utils/api"; 
 
 const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -16,23 +18,19 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    console.log("Form data being sent:", form); // Debug log
-    try {
-      const res = await axios.post("https://lmt-backend.onrender.com/api/auth/login", form, {
-        headers: { "Content-Type": "application/json" },
-      });
-      console.log("Full response:", res.data); // Log the entire response
-      const { token, user } = res.data;
-      if (!user) {
-        throw new Error("User data missing in response");
-      }
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user)); // Stores { id, name, email, role }
-      const role = user.role;
 
-      // Redirect based on role
-      switch (role) {
-        case "super_admin":
+    try {
+      const res = await api.post(`${API_BASE_URL}/auth/login`, form);
+      const { token, user } = res.data;
+
+      if (!user) throw new Error("User data missing in response");
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      // Role-based redirect
+      switch (user.role) {
+        case "super admin":
           navigate("/dashboard");
           break;
         case "admin":
@@ -46,16 +44,8 @@ const Login = () => {
           alert("Unknown role. Please contact admin.");
       }
     } catch (err) {
-      console.error("Login error:", {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status,
-      });
-      alert(
-        err.response?.data?.message ||
-        err.message ||
-        "Login failed. Please try again later."
-      );
+      console.error("Login error:", err.response?.data || err.message);
+      alert(err.response?.data?.message || "Login failed. Please try again later.");
     } finally {
       setIsLoading(false);
     }
@@ -65,9 +55,7 @@ const Login = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <div className="">
-            <img src={Teckybot} className="w-48" alt="teckybot" />
-          </div>
+          <img src={Teckybot} className="w-48" alt="teckybot" />
         </div>
         <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
           Sign in to your account
@@ -77,6 +65,7 @@ const Login = () => {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-6 shadow-sm rounded-lg border border-gray-100 sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
+            {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email address
@@ -99,6 +88,7 @@ const Login = () => {
               </div>
             </div>
 
+            {/* Password */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
@@ -121,6 +111,7 @@ const Login = () => {
               </div>
             </div>
 
+            {/* Remember Me */}
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <input
@@ -133,7 +124,6 @@ const Login = () => {
                   Remember me
                 </label>
               </div>
-
               <div className="text-sm">
                 <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
                   Forgot your password?
@@ -141,6 +131,7 @@ const Login = () => {
               </div>
             </div>
 
+            {/* Submit */}
             <div>
               <button
                 type="submit"
@@ -162,6 +153,7 @@ const Login = () => {
           </form>
         </div>
 
+        {/* Footer */}
         <div className="mt-6 text-center text-sm text-gray-600">
           <p>
             Don't have an account?{" "}

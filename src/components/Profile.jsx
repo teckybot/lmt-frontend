@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../utils/axiosInstance';
+
 
 const Profile = () => {
   const [user, setUser] = useState(null);
@@ -30,9 +31,7 @@ const Profile = () => {
       try {
         // Fetch user data
         setProfileLoading(true);
-        const userRes = await axios.get('https://lmt-backend.onrender.com/api/user/profile', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const userRes = await api.get('/users/profile');
         const userData = userRes.data;
         console.log('Profile API Response:', userData); // Debug log
         setUser(userData);
@@ -53,9 +52,8 @@ const Profile = () => {
       try {
         // Fetch user activity
         setActivityLoading(true);
-        const activityRes = await axios.get('https://lmt-backend.onrender.com/api/user/activity', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const activityRes = await api.get('/users/activity');
+
         console.log('Activity API Response:', activityRes.data); // Debug log
         setActivity(activityRes.data || []);
         setActivityError(null);
@@ -84,9 +82,8 @@ const Profile = () => {
     }
 
     try {
-      await axios.put('https://lmt-backend.onrender.com/api/user/profile', formData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+     await api.put('/users/profile', formData);
+
       setUser({ ...user, ...formData });
       localStorage.setItem('user', JSON.stringify({ ...user, ...formData }));
       setIsEditing(false);
@@ -131,7 +128,7 @@ const Profile = () => {
   return (
     <div className="bg-white shadow rounded-lg p-6  mt-16 md:mt-0">
       <h2 className="text-xl font-semibold text-gray-800 mb-6">My Profile</h2>
-      
+
       {profileError && (
         <p className="text-red-500 mb-4">Profile Error: {profileError}</p>
       )}
@@ -140,14 +137,14 @@ const Profile = () => {
         <div className="md:w-1/3">
           <div className="bg-gray-50 p-6 rounded-lg">
             <div className="flex flex-col items-center">
-              <img 
-                src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}`} 
-                alt="Profile" 
+              <img
+                src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}`}
+                alt="Profile"
                 className="h-32 w-32 rounded-full mb-4"
               />
               <h3 className="text-lg font-medium text-gray-900">{user.name}</h3>
               <p className="text-gray-500">{user.role || 'User'}</p>
-              
+
               {isEditing ? (
                 <button
                   onClick={handleSubmit}
@@ -250,7 +247,7 @@ const Profile = () => {
           ) : (
             <div className="bg-gray-50 p-6 rounded-lg">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Activity Summary</h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div className="bg-white p-4 rounded shadow">
                   <h4 className="text-sm font-medium text-gray-500">Leads Added</h4>
@@ -260,7 +257,7 @@ const Profile = () => {
                   <h4 className="text-sm font-medium text-gray-500">Leads Converted</h4>
                   <p className="text-2xl font-bold text-gray-900">{user.leadsConverted ?? '0'}</p>
                 </div>
-              </div>  
+              </div>
 
               <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Activity</h3>
               {activityError && (
@@ -268,10 +265,10 @@ const Profile = () => {
               )}
               {activityLoading ? (
                 <div className="flex justify-center items-center h-32">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div> 
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
                 </div>
               ) : activity.length > 0 ? (
-                <div className="space-y-4"> 
+                <div className="space-y-4">
                   {activity.map((item, index) => (
                     <div key={index} className="bg-white p-4 rounded shadow">
                       <div className="flex justify-between">

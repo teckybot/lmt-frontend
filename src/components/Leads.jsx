@@ -1,7 +1,9 @@
 import React, { useEffect, useState, useMemo } from "react";
-import axios from "axios";
 import { FiEdit, FiTrash2, FiChevronDown, FiSearch, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { toast } from "react-toastify";
+
+import api from "../utils/axiosInstance";
+
 
 const LeadsTable = () => {
   const [leads, setLeads] = useState([]);
@@ -35,9 +37,8 @@ const LeadsTable = () => {
   const fetchLeads = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("https://lmt-backend.onrender.com/api/leads", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await api.get("/leads");
+
       setLeads(res.data);
     } catch (err) {
       console.error("Error fetching leads", err);
@@ -50,11 +51,7 @@ const LeadsTable = () => {
   const updateStatus = async (leadId, newStatus) => {
     try {
       setLoading(true);
-      await axios.put(
-        `https://lmt-backend.onrender.com/api/leads/${leadId}/status`,
-        { status: newStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.put(`/leads/${leadId}/status`, { status: newStatus });
       fetchLeads();
       toast.success("Status updated successfully!");
     } catch (err) {
@@ -69,9 +66,8 @@ const LeadsTable = () => {
     if (!window.confirm("Are you sure you want to delete this lead?")) return;
     try {
       setLoading(true);
-      await axios.delete(`https://lmt-backend.onrender.com/api/leads/${leadId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await api.delete(`/leads/${leadId}`);
+
       fetchLeads();
       toast.success("Lead deleted successfully!");
     } catch (err) {
@@ -101,11 +97,8 @@ const LeadsTable = () => {
     e.preventDefault();
     try {
       setLoading(true);
-      await axios.put(
-        `https://lmt-backend.onrender.com/api/leads/${editingLead}`,
-        formData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.put(`/leads/${editingLead}`, formData);
+
       setEditingLead(null);
       await fetchLeads();
       toast.success("Lead updated successfully!");
@@ -308,7 +301,7 @@ const LeadsTable = () => {
                       </button>
                     </div>
                   </div>
-                  
+
                   {editingLead === lead.id && (
                     <form onSubmit={handleEditSubmit} className="mt-3 space-y-3">
                       <div>
@@ -321,7 +314,7 @@ const LeadsTable = () => {
                           required
                         />
                       </div>
-                      
+
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Customer</label>
                         <input
@@ -332,7 +325,7 @@ const LeadsTable = () => {
                           required
                         />
                       </div>
-                      
+
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                         <input
@@ -343,7 +336,7 @@ const LeadsTable = () => {
                           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                         />
                       </div>
-                      
+
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
                         <input
@@ -353,7 +346,7 @@ const LeadsTable = () => {
                           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                         />
                       </div>
-                      
+
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Service</label>
                         <select
@@ -370,7 +363,7 @@ const LeadsTable = () => {
                           ))}
                         </select>
                       </div>
-                      
+
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
@@ -386,7 +379,7 @@ const LeadsTable = () => {
                             <option value="Low">Low</option>
                           </select>
                         </div>
-                        
+
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                           <select
@@ -402,7 +395,7 @@ const LeadsTable = () => {
                           </select>
                         </div>
                       </div>
-                      
+
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
                         <input
@@ -413,7 +406,7 @@ const LeadsTable = () => {
                           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                         />
                       </div>
-                      
+
                       <div className="flex justify-end space-x-3 pt-2">
                         <button
                           type="button"
@@ -432,25 +425,25 @@ const LeadsTable = () => {
                       </div>
                     </form>
                   )}
-                  
+
                   {editingLead !== lead.id && (
                     <>
                       <div className="text-sm text-gray-500 mb-1">
                         <span className="font-medium">Customer:</span> {lead.customer_name || "N/A"}
                       </div>
-                      
+
                       <div className="text-sm text-gray-500 mb-1">
                         <span className="font-medium">Email:</span> {lead.email || "N/A"}
                       </div>
-                      
+
                       <div className="text-sm text-gray-500 mb-1">
                         <span className="font-medium">Phone:</span> {lead.phone || "N/A"}
                       </div>
-                      
+
                       <div className="text-sm text-gray-500 mb-1">
                         <span className="font-medium">Service:</span> {lead.source || "N/A"}
                       </div>
-                      
+
                       <div className="flex justify-between items-center mt-3">
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(lead.priority).bg
@@ -458,17 +451,17 @@ const LeadsTable = () => {
                         >
                           {lead.priority || "N/A"}
                         </span>
-                        
+
                         <div className="relative">
                           <select
                             value={lead.status || "New"}
                             onChange={(e) => updateStatus(lead.id, e.target.value)}
                             disabled={loading}
                             className={`block w-full pl-3 pr-8 py-1.5 text-xs border rounded-md focus:outline-none focus:ring-2 appearance-none ${lead.status === "New"
-                                ? "border-blue-200 bg-blue-50 text-blue-800"
-                                : lead.status === "In Progress"
-                                  ? "border-yellow-200 bg-yellow-50 text-yellow-800"
-                                  : "border-green-200 bg-green-50 text-green-800"
+                              ? "border-blue-200 bg-blue-50 text-blue-800"
+                              : lead.status === "In Progress"
+                                ? "border-yellow-200 bg-yellow-50 text-yellow-800"
+                                : "border-green-200 bg-green-50 text-green-800"
                               }`}
                           >
                             <option value="New">New</option>
@@ -478,7 +471,7 @@ const LeadsTable = () => {
                           <FiChevronDown className="absolute right-2 top-2 text-gray-400 text-xs pointer-events-none" />
                         </div>
                       </div>
-                      
+
                       <div className="text-xs text-gray-500 mt-2">
                         <span className="font-medium">Due:</span> {lead.due_date
                           ? new Date(lead.due_date).toLocaleDateString("en-US", {
@@ -658,10 +651,10 @@ const LeadsTable = () => {
                                 onChange={(e) => updateStatus(lead.id, e.target.value)}
                                 disabled={loading}
                                 className={`block w-full pl-3 pr-8 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 appearance-none ${lead.status === "New"
-                                    ? "border-blue-200 bg-blue-50 text-blue-800"
-                                    : lead.status === "In Progress"
-                                      ? "border-yellow-200 bg-yellow-50 text-yellow-800"
-                                      : "border-green-200 bg-green-50 text-green-800"
+                                  ? "border-blue-200 bg-blue-50 text-blue-800"
+                                  : lead.status === "In Progress"
+                                    ? "border-yellow-200 bg-yellow-50 text-yellow-800"
+                                    : "border-green-200 bg-green-50 text-green-800"
                                   }`}
                               >
                                 <option value="New">New</option>

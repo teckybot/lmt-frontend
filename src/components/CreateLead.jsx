@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { FiChevronDown, FiCalendar, FiUser, FiMail, FiPhone, FiFileText, FiX } from "react-icons/fi";
+
+import api from "../utils/axiosInstance";
+
 
 const CreateLead = () => {
   const navigate = useNavigate();
@@ -155,9 +157,8 @@ const CreateLead = () => {
       delete payload.services;
       delete payload.otherServices;
       
-      await axios.post("https://lmt-backend.onrender.com/api/leads", payload, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.post("/leads", payload);
+
       
       alert("Lead created successfully!");
       resetForm(); // Reset the form after successful submission
