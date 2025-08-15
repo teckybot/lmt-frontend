@@ -10,13 +10,24 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
   const navigate = useNavigate();
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [role, setRole] = useState(null);
 
-  // Load theme from localStorage
+  // Load theme and role
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme === "dark") {
       document.documentElement.classList.add("dark");
       setIsDarkMode(true);
+    }
+
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setRole(parsedUser.role?.toLowerCase());
+      } catch (err) {
+        console.error("Error parsing user from localStorage:", err);
+      }
     }
   }, []);
 
@@ -50,22 +61,35 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
     }
   };
 
-  const menuItems = [
+  // Full menu list
+  const allMenuItems = [
     { id: "dashboard", label: "Dashboard", icon: <FiHome className="text-lg" /> },
     { id: "leads", label: "Leads", icon: <FiUsers className="text-lg" /> },
     { id: "CreateLead", label: "Create Lead", icon: <FiPlusCircle className="text-lg" /> },
     { id: "profile", label: "Profile", icon: <FiUser className="text-lg" /> },
-    { id: "tasks", label: "Tasks", icon: <FiUsers className="text-lg" /> } // Added Tasks
+    { id: "tasks", label: "Tasks", icon: <FiUsers className="text-lg" /> }
   ];
+
+  // Role-based menu filtering
+  let menuItems = [];
+  if (role === "employee") {
+    menuItems = allMenuItems.filter(item =>
+      ["leads", "profile", "tasks"].includes(item.id.toLowerCase())
+    );
+  } else {
+    // Admin / Super Admin see all
+    menuItems = allMenuItems;
+  }
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     navigate("/");
   };
 
   return (
     <div className="flex h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-300">
-      {/* Mobile Header with Logo and Hamburger */}
+      {/* Mobile Header */}
       <header className="md:hidden fixed top-0 left-0 right-0 z-30 bg-white dark:bg-gray-900 shadow-sm h-20 flex items-center px-4">
         <button 
           className="p-2 rounded-md hamburger-button"
@@ -80,11 +104,16 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
 
       {/* Sidebar Overlay */}
       {isSidebarOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden" onClick={() => setIsSidebarOpen(false)} />
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
       )}
 
       {/* Sidebar */}
-      <div className={`sidebar w-64 border-r border-gray-200 dark:border-gray-700 fixed top-0 left-0 bottom-0 shadow-sm z-20 bg-white dark:bg-gray-900 transition-all duration-300 ease-in-out transform ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"} md:pt-0 pt-16`}>
+      <div
+        className={`sidebar w-64 border-r border-gray-200 dark:border-gray-700 fixed top-0 left-0 bottom-0 shadow-sm z-20 bg-white dark:bg-gray-900 transition-all duration-300 ease-in-out transform ${isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"} md:pt-0 pt-16`}
+      >
         <div className="p-6 pb-4 hidden md:block">
           <img src={Teckybot} alt="logo" />
         </div>
@@ -92,7 +121,10 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
         {/* Theme Toggle */}
         <div className="flex items-center justify-between px-4 py-2 mb-2">
           <span className="text-sm ml-6 font-medium">Mode</span>
-          <button onClick={toggleTheme} className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700">
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
+          >
             {isDarkMode ? <FiSun /> : <FiMoon />}
           </button>
         </div>
@@ -112,7 +144,11 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
                       : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                   }`}
                 >
-                  <span className={`mr-3 ${activeTab === item.id ? "text-blue-500" : "text-gray-400"}`}>
+                  <span
+                    className={`mr-3 ${
+                      activeTab === item.id ? "text-blue-500" : "text-gray-400"
+                    }`}
+                  >
                     {item.icon}
                   </span>
                   {item.label}
@@ -136,7 +172,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto bg-gray-50 dark:bg-gray-800 text-black dark:text-white transition-all duration-300 md:ml-64 pt-16 md:pt-0">
-        {/* Content will be rendered by the router */}
+        {/* Router will render content here */}
       </div>
     </div>
   );
