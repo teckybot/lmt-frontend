@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
-import DashboardHome from "../components/DashboardHome";
+import Analytics from "../components/Analytics";
 import Leads from "../components/Leads";
 import Profile from "../components/Profile";
 import CreateLead from "../components/CreateLead";
@@ -89,7 +89,7 @@ const Dashboard = () => {
 
     switch (activeTab) {
       case "dashboard":
-        return <DashboardHome stats={stats} isLoading={isLoading} />;
+        return <Analytics stats={stats} isLoading={isLoading} />;
       case "leads":
         return <Leads leads={leads} updateStatus={updateStatus} isLoading={isLoading} />;
       case "CreateLead":
@@ -99,7 +99,7 @@ const Dashboard = () => {
       case "tasks":
         return <AssignedLeadsPage />;
       default:
-        return <DashboardHome stats={stats} isLoading={isLoading} />;
+        return <Analytics stats={stats} isLoading={isLoading} />;
     }
   };
 

@@ -11,12 +11,12 @@ const CreateLead = () => {
   // Initial form state
   const initialFormState = {
     title: "",
-    customer_name: "",
+    customerName: "",
     phone: "",
     email: "",
     services: [],
     otherServices: [],
-    due_date: "",
+    dueDate: "",
     priority: "medium",
     notes: ""
   };
@@ -115,7 +115,7 @@ const CreateLead = () => {
     const newErrors = {};
     
     if (!formData.title) newErrors.title = "Title is required";
-    if (!formData.customer_name) newErrors.customer_name = "Customer name is required";
+    if (!formData.customerName) newErrors.customerName = "Customer name is required";
     if (!formData.phone) newErrors.phone = "Phone is required";
     if (!formData.email) {
       newErrors.email = "Email is required";
@@ -173,10 +173,10 @@ const CreateLead = () => {
   // Field configuration with icons
   const fields = [
     { label: "Title", name: "title", icon: <FiFileText className="text-gray-400" /> },
-    { label: "Customer Name", name: "customer_name", icon: <FiUser className="text-gray-400" /> },
+    { label: "Customer Name", name: "customerName", icon: <FiUser className="text-gray-400" /> },
     { label: "Phone", name: "phone", icon: <FiPhone className="text-gray-400" /> },
     { label: "Email", name: "email", type: "email", icon: <FiMail className="text-gray-400" /> },
-    { label: "Due Date", name: "due_date", type: "date", icon: <FiCalendar className="text-gray-400" /> },
+    { label: "Due Date", name: "dueDate", type: "date", icon: <FiCalendar className="text-gray-400" /> },
     { label: "Notes", name: "notes", icon: <FiFileText className="text-gray-400" /> }
   ];
 

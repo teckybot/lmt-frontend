@@ -10,11 +10,11 @@ const LeadsTable = () => {
   const [editingLead, setEditingLead] = useState(null);
   const [formData, setFormData] = useState({
     title: "",
-    customer_name: "",
+    customerName: "",
     phone: "",
     email: "",
     source: "",
-    due_date: "",
+    dueDate: "",
     priority: "",
     status: "",
     notes: "",
@@ -82,11 +82,11 @@ const LeadsTable = () => {
     setEditingLead(lead.id);
     setFormData({
       title: lead.title || "",
-      customer_name: lead.customer_name || "",
+      customerName   : lead.customerName || "",
       phone: lead.phone || "",
       email: lead.email || "",
       source: lead.source || "",
-      due_date: lead.due_date ? new Date(lead.due_date).toISOString().split("T")[0] : "",
+      dueDate: lead.dueDate ? new Date(lead.dueDate).toISOString().split("T")[0] : "",
       priority: lead.priority || "",
       status: lead.status || "",
       notes: lead.notes || "",
@@ -118,7 +118,7 @@ const LeadsTable = () => {
     return leads.filter((lead) => {
       const matchesSearch =
         (lead.title || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (lead.customer_name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (lead.customerName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         (lead.email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         (lead.phone || "").toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -318,8 +318,8 @@ const LeadsTable = () => {
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Customer</label>
                         <input
-                          name="customer_name"
-                          value={formData.customer_name}
+                          name="customerName"
+                          value={formData.customerName}
                           onChange={handleChange}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                           required
@@ -400,8 +400,8 @@ const LeadsTable = () => {
                         <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
                         <input
                           type="date"
-                          name="due_date"
-                          value={formData.due_date}
+                          name="dueDate"
+                          value={formData.dueDate}
                           onChange={handleChange}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                         />
@@ -429,7 +429,7 @@ const LeadsTable = () => {
                   {editingLead !== lead.id && (
                     <>
                       <div className="text-sm text-gray-500 mb-1">
-                        <span className="font-medium">Customer:</span> {lead.customer_name || "N/A"}
+                        <span className="font-medium">Customer:</span> {lead.customerName || "N/A"}
                       </div>
 
                       <div className="text-sm text-gray-500 mb-1">
@@ -473,8 +473,8 @@ const LeadsTable = () => {
                       </div>
 
                       <div className="text-xs text-gray-500 mt-2">
-                        <span className="font-medium">Due:</span> {lead.due_date
-                          ? new Date(lead.due_date).toLocaleDateString("en-US", {
+                        <span className="font-medium">Due:</span> {lead.dueDate
+                          ? new Date(lead.dueDate).toLocaleDateString("en-US", {
                             year: "numeric",
                             month: "short",
                             day: "2-digit",
@@ -532,8 +532,8 @@ const LeadsTable = () => {
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap">
                             <input
-                              name="customer_name"
-                              value={formData.customer_name}
+                              name="customerName"
+                              value={formData.customerName}
                               onChange={handleChange}
                               className="border px-3 py-1 rounded-md w-full text-sm focus:ring-blue-500 focus:border-blue-500"
                             />
@@ -595,9 +595,9 @@ const LeadsTable = () => {
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap">
                             <input
-                              name="due_date"
+                              name="dueDate"
                               type="date"
-                              value={formData.due_date}
+                              value={formData.dueDate}
                               onChange={handleChange}
                               className="border px-3 py-1 rounded-md w-full text-sm focus:ring-blue-500 focus:border-blue-500"
                             />
@@ -624,8 +624,8 @@ const LeadsTable = () => {
                           <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 truncate max-w-xs" title={lead.title || "N/A"}>
                             {lead.title || "N/A"}
                           </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 truncate max-w-xs" title={lead.customer_name || "N/A"}>
-                            {lead.customer_name || "N/A"}
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 truncate max-w-xs" title={lead.customerName || "N/A"}>
+                            {lead.customerName || "N/A"}
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 truncate max-w-xs" title={lead.email || "N/A"}>
                             {lead.email || "N/A"}
@@ -665,8 +665,8 @@ const LeadsTable = () => {
                             </div>
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {lead.due_date
-                              ? new Date(lead.due_date).toLocaleDateString("en-US", {
+                            {lead.dueDate
+                              ? new Date(lead.dueDate).toLocaleDateString("en-US", {
                                 year: "numeric",
                                 month: "short",
                                 day: "2-digit",

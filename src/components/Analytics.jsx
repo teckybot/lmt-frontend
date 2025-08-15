@@ -33,7 +33,7 @@ const Analytics = () => {
           return;
         }
 
-       const res = await api.get("/leads/analytics");
+       const res = await api.get("/analytics");
 
         setAnalyticsData(res.data);
       } catch (err) {
@@ -168,7 +168,7 @@ const Analytics = () => {
                   className="w-4 h-4 rounded-full mr-3" 
                   style={{ backgroundColor: item.color }}
                 ></div>
-                <span className="text-gray-600">{item.name}</span>
+                <span className="text-gray-800">{item.name}</span>
               </div>
               <span className="font-medium text-lg">{item.value}</span>
             </div>
@@ -315,7 +315,7 @@ const LeadList = ({ leads, emptyMessage }) => {
                 <div className="pr-3">
                   <p className="font-medium text-gray-800">{lead.title || 'Untitled Lead'}</p>
                   <p className="text-sm text-gray-600 mt-1">
-                    <span className="font-medium">{lead.customer_name || 'Unknown'}</span>
+                    <span className="font-medium">{lead.customerName || 'Unknown'}</span>
                   </p>
                 </div>
                 <div className="flex flex-col items-end space-y-2">
@@ -325,7 +325,7 @@ const LeadList = ({ leads, emptyMessage }) => {
               </div>
               <div className="flex items-center mt-3 text-sm text-gray-500">
                 <FiCalendar className="mr-2" />
-                <span>Due: {lead.due_date ? new Date(lead.due_date).toLocaleDateString() : 'N/A'}</span>
+                <span>Due: {lead.dueDate ? new Date(lead.dueDate).toLocaleDateString() : 'N/A'}</span>
               </div>
             </li>
           ))}
