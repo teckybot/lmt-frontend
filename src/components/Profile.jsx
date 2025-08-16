@@ -16,6 +16,8 @@ const Profile = () => {
   const [activityError, setActivityError] = useState(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [activityLoading, setActivityLoading] = useState(true);
+  const [activitySummary, setActivitySummary] = useState({ leadsAdded: 0, leadsClosed: 0 });
+
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -55,7 +57,8 @@ const Profile = () => {
         const activityRes = await api.get('/users/activity');
 
         console.log('Activity API Response:', activityRes.data); // Debug log
-        setActivity(activityRes.data || []);
+        setActivitySummary(activityRes.data.summary || { leadsAdded: 0, leadsClosed: 0 });
+        setActivity(activityRes.data.activity || []);
         setActivityError(null);
       } catch (err) {
         console.error('Error fetching activity:', err.response?.status, err.response?.data, err.message);
@@ -82,7 +85,7 @@ const Profile = () => {
     }
 
     try {
-     await api.put('/users/profile', formData);
+      await api.put('/users/profile', formData);
 
       setUser({ ...user, ...formData });
       localStorage.setItem('user', JSON.stringify({ ...user, ...formData }));
@@ -169,11 +172,15 @@ const Profile = () => {
                   <span className="font-medium">Email:</span> {user.email}
                 </p>
                 <p className="text-sm text-gray-700">
-                  <span className="font-medium">Member Since:</span> {new Date(user.created_at).toLocaleDateString()}
+                  <span className="font-medium">Member Since:</span> {new Date(user.createdAt).toLocaleDateString()}
                 </p>
                 <p className="text-sm text-gray-700">
-                  <span className="font-medium">Last Login:</span> {new Date(user.last_login).toLocaleString()}
+                  <span className="font-medium">Last Login:</span> {new Date(user.previousLogin).toLocaleString()}
                 </p>
+                <p className="text-sm text-gray-700">
+                  <span className="font-medium">Current Login:</span> {new Date(user.lastLogin).toLocaleString()}
+                </p>
+
               </div>
             </div>
           </div>
@@ -251,11 +258,11 @@ const Profile = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div className="bg-white p-4 rounded shadow">
                   <h4 className="text-sm font-medium text-gray-500">Leads Added</h4>
-                  <p className="text-2xl font-bold text-gray-900">{user.leadsAdded ?? '0'}</p>
+                  <p className="text-2xl font-bold text-gray-900">{activitySummary.leadsAdded}</p>
                 </div>
                 <div className="bg-white p-4 rounded shadow">
-                  <h4 className="text-sm font-medium text-gray-500">Leads Converted</h4>
-                  <p className="text-2xl font-bold text-gray-900">{user.leadsConverted ?? '0'}</p>
+                  <h4 className="text-sm font-medium text-gray-500">Leads Closed</h4>
+                  <p className="text-2xl font-bold text-gray-900">{activitySummary.leadsClosed}</p>
                 </div>
               </div>
 
@@ -276,6 +283,7 @@ const Profile = () => {
                         <p className="text-sm text-gray-500">
                           {item.timestamp ? new Date(item.timestamp).toLocaleString() : 'N/A'}
                         </p>
+
                       </div>
                       <p className="text-sm text-gray-500 mt-1">{item.details || 'No details available'}</p>
                     </div>

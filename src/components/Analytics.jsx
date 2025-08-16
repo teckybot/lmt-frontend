@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  FiTrendingUp, 
-  FiClock, 
-  FiAlertCircle, 
-  FiCheckCircle, 
-  FiUser, 
+import {
+  FiTrendingUp,
+  FiClock,
+  FiAlertCircle,
+  FiCheckCircle,
+  FiUser,
   FiCalendar,
   FiLoader,
   FiBarChart2,
@@ -33,7 +33,7 @@ const Analytics = () => {
           return;
         }
 
-       const res = await api.get("/analytics");
+        const res = await api.get("/analytics");
 
         setAnalyticsData(res.data);
       } catch (err) {
@@ -108,7 +108,7 @@ const Analytics = () => {
 
   return (
     <div className="p-4 space-y-4 bg-gray-50 mt-16 md:mt-0">
-      
+
       <header className="mb-4">
         <h1 className="text-2xl font-bold text-gray-800">Lead Analytics Dashboard</h1>
         <p className="text-gray-600">Overview of your leads and conversions</p>
@@ -117,36 +117,36 @@ const Analytics = () => {
       {/* KPI Cards - 2x2 grid on mobile */}
       <div className="grid grid-cols-2  gap-4">
         <div className="col-span-1">
-          <KPICard 
-            title="Total Leads" 
-            value={stats.total || 0} 
+          <KPICard
+            title="Total Leads"
+            value={stats.total || 0}
             icon={<FiBarChart2 className="text-blue-500 text-2xl" />}
             trend="total"
             large
           />
         </div>
         <div className="col-span-1">
-          <KPICard 
-            title="New Leads" 
-            value={stats.new || 0} 
+          <KPICard
+            title="New Leads"
+            value={stats.new || 0}
             icon={<FiUser className="text-green-500 text-2xl" />}
             trend="new"
             large
           />
         </div>
         <div className="col-span-1">
-          <KPICard 
-            title="In Progress" 
-            value={stats.inProgress || 0} 
+          <KPICard
+            title="In Progress"
+            value={stats.inProgress || 0}
             icon={<FiLoader className="text-yellow-500 text-2xl" />}
             trend="inProgress"
             large
           />
         </div>
         <div className="col-span-1">
-          <KPICard 
-            title="Closed Leads" 
-            value={stats.closed || 0} 
+          <KPICard
+            title="Closed Leads"
+            value={stats.closed || 0}
             icon={<FiCheckCircle className="text-purple-500 text-2xl" />}
             trend="closed"
             large
@@ -164,8 +164,8 @@ const Analytics = () => {
           {priorityData.map((item) => (
             <div key={item.name} className="flex items-center justify-between">
               <div className="flex items-center">
-                <div 
-                  className="w-4 h-4 rounded-full mr-3" 
+                <div
+                  className="w-4 h-4 rounded-full mr-3"
                   style={{ backgroundColor: item.color }}
                 ></div>
                 <span className="text-gray-800">{item.name}</span>
@@ -183,53 +183,53 @@ const Analytics = () => {
       </div>
 
       {/* Upcoming Leads */}
-      <CollapsibleSection 
-        title="Upcoming Due Leads" 
+      <CollapsibleSection
+        title="Upcoming Due Leads"
         isExpanded={expandedSection === 'upcoming'}
         onToggle={() => toggleSection('upcoming')}
         icon={<FiClock className="text-blue-500 text-xl" />}
       >
-        <LeadList 
-          leads={upcomingLeads} 
+        <LeadList
+          leads={upcomingLeads}
           emptyMessage="No upcoming leads"
         />
       </CollapsibleSection>
 
       {/* Overdue Leads */}
-      <CollapsibleSection 
-        title="Overdue Leads" 
+      <CollapsibleSection
+        title="Overdue Leads"
         isExpanded={expandedSection === 'overdue'}
         onToggle={() => toggleSection('overdue')}
         icon={<FiAlertCircle className="text-red-500 text-xl" />}
       >
-        <LeadList 
-          leads={overdueLeads} 
+        <LeadList
+          leads={overdueLeads}
           emptyMessage="No overdue leads"
         />
       </CollapsibleSection>
 
       {/* Recent Leads */}
-      <CollapsibleSection 
-        title="Recent Leads (5 Days)" 
+      <CollapsibleSection
+        title="Recent Leads (5 Days)"
         isExpanded={expandedSection === 'recent'}
         onToggle={() => toggleSection('recent')}
         icon={<FiTrendingUp className="text-green-500 text-xl" />}
       >
-        <LeadList 
-          leads={recentLeads} 
+        <LeadList
+          leads={recentLeads}
           emptyMessage="No recent leads"
         />
       </CollapsibleSection>
 
       {/* Recently Closed Leads */}
-      <CollapsibleSection 
-        title="Recently Closed (5 Days)" 
+      <CollapsibleSection
+        title="Recently Closed (5 Days)"
         isExpanded={expandedSection === 'closed'}
         onToggle={() => toggleSection('closed')}
         icon={<FiCheckCircle className="text-purple-500 text-xl" />}
       >
-        <LeadList 
-          leads={recentlyClosedLeads} 
+        <LeadList
+          leads={recentlyClosedLeads}
           emptyMessage="No closed leads"
         />
       </CollapsibleSection>
@@ -241,7 +241,7 @@ const Analytics = () => {
 const CollapsibleSection = ({ title, isExpanded, onToggle, icon, children }) => {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <button 
+      <button
         onClick={onToggle}
         className="w-full flex items-center justify-between p-5 text-left"
       >
@@ -297,6 +297,7 @@ const KPICard = ({ title, value, icon, trend, large }) => {
 };
 
 // Lead List Component
+// Lead List Component
 const LeadList = ({ leads, emptyMessage }) => {
   return (
     <>
@@ -307,8 +308,8 @@ const LeadList = ({ leads, emptyMessage }) => {
       ) : (
         <ul className="space-y-3">
           {leads.map((lead) => (
-            <li 
-              key={lead.id || lead._id} 
+            <li
+              key={lead.id || lead._id}
               className="p-4 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
             >
               <div className="flex justify-between items-start">
@@ -317,15 +318,27 @@ const LeadList = ({ leads, emptyMessage }) => {
                   <p className="text-sm text-gray-600 mt-1">
                     <span className="font-medium">{lead.customerName || 'Unknown'}</span>
                   </p>
+
+                  {/* Show closed by user if available */}
+                  {lead.closedByUser && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Closed by: <span className="font-medium">{lead.closedByUser.name}</span>
+                      {lead.closedAt && ` on ${new Date(lead.closedAt).toLocaleDateString()}`}
+                    </p>
+                  )}
                 </div>
+
                 <div className="flex flex-col items-end space-y-2">
                   <PriorityBadge priority={lead.priority} />
                   <StatusBadge status={lead.status} />
                 </div>
               </div>
+
               <div className="flex items-center mt-3 text-sm text-gray-500">
                 <FiCalendar className="mr-2" />
-                <span>Due: {lead.dueDate ? new Date(lead.dueDate).toLocaleDateString() : 'N/A'}</span>
+                <span>
+                  Due: {lead.dueDate ? new Date(lead.dueDate).toLocaleDateString() : 'N/A'}
+                </span>
               </div>
             </li>
           ))}
@@ -334,6 +347,7 @@ const LeadList = ({ leads, emptyMessage }) => {
     </>
   );
 };
+
 
 // Priority Badge Component
 const PriorityBadge = ({ priority }) => {

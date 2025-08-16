@@ -51,7 +51,7 @@ const LeadsTable = () => {
   const updateStatus = async (leadId, newStatus) => {
     try {
       setLoading(true);
-      await api.put(`/leads/${leadId}/status`, { status: newStatus });
+      await api.patch(`/leads/${leadId}/status`, { status: newStatus });
       fetchLeads();
       toast.success("Status updated successfully!");
     } catch (err) {
