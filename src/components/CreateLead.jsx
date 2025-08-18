@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiChevronDown, FiCalendar, FiUser, FiMail, FiPhone, FiFileText, FiX } from "react-icons/fi";
-
+import { toast, ToastContainer } from "react-toastify";
 import api from "../utils/axiosInstance";
 
 
@@ -17,7 +17,7 @@ const CreateLead = () => {
     services: [],
     otherServices: [],
     dueDate: "",
-    priority: "medium",
+    priority: "Medium",
     notes: ""
   };
 
@@ -29,9 +29,9 @@ const CreateLead = () => {
   const [otherServiceInput, setOtherServiceInput] = useState("");
 
   const priorityOptions = [
-    { value: "high", label: "High" },
-    { value: "medium", label: "Medium" },
-    { value: "low", label: "Low" }
+    { value: "High", label: "High" },
+    { value: "Medium", label: "Medium" },
+    { value: "Low", label: "Low" }
   ];
 
   const serviceOptions = [
@@ -58,7 +58,7 @@ const CreateLead = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    
+
     if (errors[name]) {
       setErrors({ ...errors, [name]: null });
     }
@@ -113,7 +113,7 @@ const CreateLead = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.title) newErrors.title = "Title is required";
     if (!formData.customerName) newErrors.customerName = "Customer name is required";
     if (!formData.phone) newErrors.phone = "Phone is required";
@@ -125,7 +125,7 @@ const CreateLead = () => {
     if (formData.services.length === 0 && formData.otherServices.length === 0) {
       newErrors.services = "At least one service is required";
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -140,31 +140,35 @@ const CreateLead = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     setIsSubmitting(true);
-    
+
     try {
       const token = localStorage.getItem("token");
       const allServices = [...formData.services, ...formData.otherServices].join(", ");
-      
-      const payload = { 
+
+      const payload = {
         ...formData,
         source: allServices
       };
-      
+
       delete payload.services;
       delete payload.otherServices;
-      
+
       await api.post("/leads", payload);
 
-      
-      alert("Lead created successfully!");
+
+      toast.success("Lead created successfully!", {
+        className: "bg-green-500 text-white font-medium rounded-lg shadow-lg px-4 py-2",
+      });
       resetForm(); // Reset the form after successful submission
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.message || "Error creating lead");
+      toast.error(err.response?.data?.message || "Error creating lead", {
+        className: "bg-red-500 text-white font-medium rounded-lg shadow-lg px-4 py-2",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -184,7 +188,7 @@ const CreateLead = () => {
     <div className="max-w-2xl mx-auto p-4 sm:p-6 mt-16 md:mt-0">
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <h2 className="text-4xl text-center font-bold text-gray-800 mb-6">Create New Lead</h2>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           {fields.map(({ label, name, type = "text", icon }) => (
             <div key={name} className="space-y-1">
@@ -205,9 +209,8 @@ const CreateLead = () => {
                     value={formData[name]}
                     onChange={handleChange}
                     min={new Date().toISOString().split("T")[0]}
-                    className={`block w-full ${icon ? 'pl-10' : 'pl-3'} pr-3 py-2 border ${
-                      errors[name] ? 'border-red-300' : 'border-gray-200'
-                    } rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                    className={`block w-full ${icon ? 'pl-10' : 'pl-3'} pr-3 py-2 border ${errors[name] ? 'border-red-300' : 'border-gray-200'
+                      } rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
                   />
                 ) : (
                   <input
@@ -215,9 +218,8 @@ const CreateLead = () => {
                     name={name}
                     value={formData[name]}
                     onChange={handleChange}
-                    className={`block w-full ${icon ? 'pl-10' : 'pl-3'} pr-3 py-2 border ${
-                      errors[name] ? 'border-red-300' : 'border-gray-200'
-                    } rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                    className={`block w-full ${icon ? 'pl-10' : 'pl-3'} pr-3 py-2 border ${errors[name] ? 'border-red-300' : 'border-gray-200'
+                      } rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
                   />
                 )}
               </div>
@@ -232,14 +234,14 @@ const CreateLead = () => {
             <label className="block text-sm font-medium text-gray-700">
               Services <span className="text-red-500">*</span>
             </label>
-            
+
             {/* Selected Services Display */}
             <div className="flex flex-wrap gap-2 mb-2">
               {formData.services.map((service, index) => (
                 <div key={`service-${index}`} className="flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
                   {service}
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => removeService(service)}
                     className="ml-2 text-blue-600 hover:text-blue-800"
                   >
@@ -250,8 +252,8 @@ const CreateLead = () => {
               {formData.otherServices.map((service, index) => (
                 <div key={`other-service-${index}`} className="flex items-center bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm">
                   {service}
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => removeOtherService(service)}
                     className="ml-2 text-purple-600 hover:text-purple-800"
                   >
@@ -260,28 +262,26 @@ const CreateLead = () => {
                 </div>
               ))}
             </div>
-            
+
             {/* Dropdown */}
             <div className="relative">
               <button
                 type="button"
                 onClick={toggleServiceDropdown}
-                className={`w-full text-left pl-3 pr-8 py-2 border ${
-                  errors.services ? 'border-red-300' : 'border-gray-200'
-                } rounded-lg bg-gray-50 hover:bg-gray-100 flex items-center justify-between`}
+                className={`w-full text-left pl-3 pr-8 py-2 border ${errors.services ? 'border-red-300' : 'border-gray-200'
+                  } rounded-lg bg-gray-50 hover:bg-gray-100 flex items-center justify-between`}
               >
                 <span>Select Services</span>
                 <FiChevronDown className={`transition-transform ${showServiceDropdown ? 'rotate-180' : ''}`} />
               </button>
-              
+
               {showServiceDropdown && (
                 <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto">
                   {serviceOptions.map((service, index) => (
                     <div
                       key={index}
-                      className={`px-4 py-2 hover:bg-gray-100 cursor-pointer ${
-                        formData.services.includes(service) ? 'bg-blue-50' : ''
-                      }`}
+                      className={`px-4 py-2 hover:bg-gray-100 cursor-pointer ${formData.services.includes(service) ? 'bg-blue-50' : ''
+                        }`}
                       onClick={() => handleServiceSelection(service)}
                     >
                       <div className="flex items-center">
@@ -367,7 +367,21 @@ const CreateLead = () => {
           </div>
         </form>
       </div>
+      <div className="p-6">
+        {/* your form UI here */}
+
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          pauseOnHover
+          draggable
+        />
+      </div>
     </div>
+
   );
 };
 

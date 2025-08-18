@@ -1,6 +1,10 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { FiEdit, FiTrash2, FiChevronDown, FiSearch, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { FiEdit, FiTrash2, FiChevronDown, FiSearch, FiChevronLeft, FiChevronRight, FiDownload } from "react-icons/fi";
 import { toast } from "react-toastify";
+import { Modal, Form, Input, Select, DatePicker, Button, Popconfirm, Pagination } from "antd";
+import dayjs from "dayjs";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 import api from "../utils/axiosInstance";
 
@@ -26,13 +30,25 @@ const LeadsTable = () => {
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
-  const rowsPerPage = 10;
+  const [showModal, setShowModal] = useState(false);
+  const [form] = Form.useForm();
+  const [rowsPerPage, setRowsPerPage] = useState(10); // default rows per page
+
 
   const token = localStorage.getItem("token");
 
   useEffect(() => {
     fetchLeads();
   }, []);
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
 
   const fetchLeads = async () => {
     setLoading(true);
@@ -52,7 +68,9 @@ const LeadsTable = () => {
     try {
       setLoading(true);
       await api.patch(`/leads/${leadId}/status`, { status: newStatus });
-      fetchLeads();
+      setLeads((prevLeads) =>
+        prevLeads.map((lead) => (lead.id === leadId ? { ...lead, status: newStatus } : lead))
+      );
       toast.success("Status updated successfully!");
     } catch (err) {
       console.error("Error updating status", err);
@@ -63,11 +81,9 @@ const LeadsTable = () => {
   };
 
   const deleteLead = async (leadId) => {
-    if (!window.confirm("Are you sure you want to delete this lead?")) return;
     try {
       setLoading(true);
       await api.delete(`/leads/${leadId}`);
-
       fetchLeads();
       toast.success("Lead deleted successfully!");
     } catch (err) {
@@ -78,29 +94,111 @@ const LeadsTable = () => {
     }
   };
 
+
+  // const handleEditClick = (lead) => {
+  //   setEditingLead(lead.id);
+
+  //   form.setFieldsValue({
+  //     title: lead.title || "",
+  //     customerName: lead.customerName || "",
+  //     phone: lead.phone || "",
+  //     email: lead.email || "",
+  //     source: lead.source || "",
+  //     dueDate: lead.dueDate ? dayjs(lead.dueDate) : null,
+  //     priority: lead.priority || "",
+  //     status: lead.status || "",
+  //     notes: lead.notes || "",
+  //   });
+  //   setShowModal(true);
+  // };
+
   const handleEditClick = (lead) => {
     setEditingLead(lead.id);
-    setFormData({
-      title: lead.title || "",
-      customerName   : lead.customerName || "",
-      phone: lead.phone || "",
-      email: lead.email || "",
-      source: lead.source || "",
-      dueDate: lead.dueDate ? new Date(lead.dueDate).toISOString().split("T")[0] : "",
-      priority: lead.priority || "",
-      status: lead.status || "",
-      notes: lead.notes || "",
-    });
+
+    if (isMobile) {
+      // 👉 Mobile: use inline form (prefill formData)
+      setFormData({
+        title: lead.title || "",
+        customerName: lead.customerName || "",
+        phone: lead.phone || "",
+        email: lead.email || "",
+        source: lead.source || "",
+        dueDate: lead.dueDate ? new Date(lead.dueDate).toISOString().split("T")[0] : "",
+        priority: lead.priority || "",
+        status: lead.status || "",
+        notes: lead.notes || "",
+      });
+    } else {
+      // 👉 Desktop: use antd modal form
+      form.setFieldsValue({
+        title: lead.title || "",
+        customerName: lead.customerName || "",
+        phone: lead.phone || "",
+        email: lead.email || "",
+        source: lead.source || "",
+        dueDate: lead.dueDate ? dayjs(lead.dueDate) : null,
+        priority: lead.priority || "",
+        status: lead.status || "",
+        notes: lead.notes || "",
+      });
+      setShowModal(true);
+    }
   };
 
-  const handleEditSubmit = async (e) => {
-    e.preventDefault();
+  // const handleEditSubmit = async (values) => {
+  //   try {
+  //     setLoading(true);
+
+  //     await api.put(`/leads/${editingLead}`, {
+  //       ...values,
+  //       dueDate: values.dueDate ? values.dueDate.format("YYYY-MM-DD") : null,
+  //     });
+
+  //     setShowModal(false);
+  //     setEditingLead(null);
+  //     await fetchLeads();
+  //     toast.success("Lead updated successfully!");
+  //   } catch (err) {
+  //     console.error("Error updating lead", err);
+  //     toast.error("Failed to update lead.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  const handleEditSubmit = async (eOrValues) => {
     try {
       setLoading(true);
-      await api.put(`/leads/${editingLead}`, formData);
+      let values;
+      if (isMobile) {
+        eOrValues.preventDefault();
+        values = formData;
+      } else {
+        values = eOrValues;
+      }
 
-      setEditingLead(null);
-      await fetchLeads();
+      const updatedLead = {
+        ...values,
+        dueDate: values.dueDate
+          ? (isMobile ? values.dueDate : values.dueDate.format("YYYY-MM-DD"))
+          : null,
+      };
+
+      await api.put(`/leads/${editingLead}`, updatedLead);
+
+      // Update the local state instead of re-fetching
+      setLeads((prevLeads) =>
+        prevLeads.map((lead) => (lead.id === editingLead ? { ...lead, ...updatedLead } : lead))
+      );
+
+      // Reset UI
+      if (isMobile) {
+        setEditingLead(null);
+      } else {
+        setShowModal(false);
+        setEditingLead(null);
+      }
+
       toast.success("Lead updated successfully!");
     } catch (err) {
       console.error("Error updating lead", err);
@@ -110,8 +208,50 @@ const LeadsTable = () => {
     }
   };
 
+
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  // Download excel
+  const exportToExcel = () => {
+
+    // check if filters are applied
+    const isFiltered =
+      searchTerm ||
+      priorityFilter !== "All" ||
+      statusFilter !== "All" ||
+      sourceFilter !== "All";
+
+    // decide which data to export
+    const dataToExport = (isFiltered ? filteredLeads : leads).map((lead) => ({
+      Title: lead.title || "N/A",
+      Customer: lead.customerName || "N/A",
+      Email: lead.email || "N/A",
+      Phone: lead.phone || "N/A",
+      Service: lead.source || "N/A",
+      Priority: lead.priority || "N/A",
+      Status: lead.status || "N/A",
+      "Due Date": lead.dueDate
+        ? new Date(lead.dueDate).toLocaleDateString("en-US")
+        : "N/A",
+      Notes: lead.notes || "",
+
+    }));
+
+    if (!dataToExport.length) {
+      alert("No data to export");
+      return;
+    }
+
+    // create Excel file
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Leads");
+
+    // make filename dynamic
+    const filename = isFiltered ? "Filtered_Leads.xlsx" : "All_Leads.xlsx";
+    XLSX.writeFile(workbook, filename);
   };
 
   const filteredLeads = useMemo(() => {
@@ -134,12 +274,11 @@ const LeadsTable = () => {
   const paginatedLeads = useMemo(() => {
     const startIndex = (currentPage - 1) * rowsPerPage;
     return filteredLeads.slice(startIndex, startIndex + rowsPerPage);
-  }, [filteredLeads, currentPage]);
+  }, [filteredLeads, currentPage, rowsPerPage]);
 
-  const uniquePriorities = [...new Set(leads.map((lead) => lead.priority).filter((p) => p))];
-  const uniqueStatuses = [...new Set(leads.map((lead) => lead.status).filter((s) => s))];
-  const uniqueSources = [
-    ...new Set(leads.map((lead) => lead.source).filter((s) => s)),
+  const PRIORITY_OPTIONS = ["High", "Medium", "Low"];
+  const STATUS_OPTIONS = ["New", "In Progress", "Closed"];
+  const SOURCE_OPTIONS = [
     "Year Long Programme",
     "STEM Labs",
     "Training",
@@ -151,20 +290,52 @@ const LeadsTable = () => {
     "Bootcamps",
     "Product Selling",
     "Other"
-  ].filter((value, index, self) => self.indexOf(value) === index);
+  ];
+
+  const uniquePriorities = PRIORITY_OPTIONS;
+  const uniqueStatuses = STATUS_OPTIONS;
+  const uniqueSources = SOURCE_OPTIONS;
 
   const getPriorityColor = (priority) => {
-    switch (priority?.toLowerCase()) {
-      case 'high':
+    switch (priority) {
+      case 'High':
         return { bg: 'bg-red-100', text: 'text-red-800' };
-      case 'medium':
+      case 'Medium':
         return { bg: 'bg-yellow-100', text: 'text-yellow-800' };
-      case 'low':
+      case 'Low':
         return { bg: 'bg-green-100', text: 'text-green-800' };
       default:
         return { bg: 'bg-gray-100', text: 'text-gray-800' };
     }
   };
+
+  const PaginationControls = () => (
+    <div className="flex flex-col md:flex-row items-center justify-between mt-4 gap-3">
+      {/* Rows per page (Antd Select) */}
+      <div className="flex items-center space-x-2 text-sm text-gray-600">
+        <span>Rows per page:</span>
+        <Select
+          value={rowsPerPage}
+          onChange={(value) => {
+            setRowsPerPage(value);
+            setCurrentPage(1);
+          }}
+          options={[5, 10, 20, 50].map((size) => ({ value: size, label: size }))}
+          style={{ width: 80 }}
+        />
+      </div>
+
+      {/* Ant Design Pagination */}
+      <Pagination
+        current={currentPage}
+        total={filteredLeads.length}
+        pageSize={rowsPerPage}
+        onChange={(page) => setCurrentPage(page)}
+        showSizeChanger={false}
+        responsive
+      />
+    </div>
+  );
 
   return (
     <div className="p-4 bg-white mt-16 md:mt-0">
@@ -176,18 +347,32 @@ const LeadsTable = () => {
           </div>
 
           <div className="mb-4">
-            <div className="relative w-full mb-2">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <FiSearch className="text-gray-400" />
+            <div className="flex flex-col md:flex-row items-center justify-between w-full mb-2 gap-3">
+              {/* Search Input */}
+              <div className="relative w-full">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <FiSearch className="text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search leads..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                />
               </div>
-              <input
-                type="text"
-                placeholder="Search leads..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-              />
+
+              {/* Download Excel Button */}
+              <Button
+                type="primary"
+                icon={<FiDownload className="mr-1" />}
+                onClick={exportToExcel}
+                className="whitespace-nowrap w-full md:w-auto"
+              >
+                Download Excel
+              </Button>
             </div>
+
 
             <button
               onClick={() => setShowFilters(!showFilters)}
@@ -199,31 +384,20 @@ const LeadsTable = () => {
 
             {showFilters && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
-                <select
-                  value={priorityFilter}
-                  onChange={(e) => setPriorityFilter(e.target.value)}
-                  className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs md:text-sm"
-                >
+                <select value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)}>
                   <option value="All">All Priorities</option>
                   {uniquePriorities.map((priority) => (
-                    <option key={priority} value={priority}>
-                      {priority}
-                    </option>
+                    <option key={priority} value={priority}>{priority}</option>
                   ))}
                 </select>
 
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs md:text-sm"
-                >
+                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
                   <option value="All">All Statuses</option>
                   {uniqueStatuses.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
+                    <option key={status} value={status}>{status}</option>
                   ))}
                 </select>
+
 
                 <select
                   value={sourceFilter}
@@ -271,6 +445,11 @@ const LeadsTable = () => {
             )}
           </div>
 
+          {/* Mobile Pagination */}
+          <div className="md:hidden">
+            <PaginationControls />
+          </div>
+
           {/* Mobile View */}
           <div className="md:hidden space-y-3">
             {loading ? (
@@ -291,14 +470,22 @@ const LeadsTable = () => {
                       >
                         <FiEdit className="w-4 h-4" />
                       </button>
-                      <button
-                        onClick={() => deleteLead(lead.id)}
-                        disabled={loading}
-                        className="text-red-600 hover:text-red-800 disabled:opacity-50"
-                        title="Delete"
+                      <Popconfirm
+                        title="Are you sure you want to delete this lead?"
+                        okText="Yes"
+                        cancelText="No"
+                        okType="danger"
+                        onConfirm={() => deleteLead(lead.id)}
                       >
-                        <FiTrash2 className="w-4 h-4" />
-                      </button>
+                        <button
+                          disabled={loading}
+                          className="text-red-600 hover:text-red-800 disabled:opacity-50"
+                          title="Delete"
+                        >
+                          <FiTrash2 className="w-4 h-4" />
+                        </button>
+                      </Popconfirm>
+
                     </div>
                   </div>
 
@@ -411,10 +598,12 @@ const LeadsTable = () => {
                         <button
                           type="button"
                           onClick={() => setEditingLead(null)}
-                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
                         >
                           Cancel
                         </button>
+
+
                         <button
                           type="submit"
                           disabled={loading}
@@ -490,20 +679,25 @@ const LeadsTable = () => {
 
           {/* Desktop View */}
           <div className="hidden md:block overflow-x-auto border border-gray-200 rounded-lg">
+            {/* Desktop Pagination */}
+            <PaginationControls />
+
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">Title</th>
-                  <th className="px-12 pl-8 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">Customer</th>
-                  <th className="px-20 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-56">Email</th>
-                  <th className="px-12 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Phone</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">Service</th>
-                  <th className="px-12 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Priority</th>
-                  <th className="px-12 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Status</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Due Date</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Actions</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-48">Title</th>
+                  <th className="px-12 pl-8 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-48">Customer</th>
+                  <th className="px-20 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-56">Email</th>
+                  <th className="px-12 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Phone</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-48">Service</th>
+                  <th className="px-12 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Priority</th>
+                  <th className="px-12 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Status</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Due Date</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Actions</th>
                 </tr>
               </thead>
+
+
               <tbody className="bg-white divide-y divide-gray-200">
                 {loading ? (
                   <tr>
@@ -520,211 +714,203 @@ const LeadsTable = () => {
                 ) : (
                   paginatedLeads.map((lead) => (
                     <tr key={lead.id} className="hover:bg-gray-50">
-                      {editingLead === lead.id ? (
-                        <>
-                          <td className="px-4 py-4 whitespace-nowrap">
-                            <input
-                              name="title"
-                              value={formData.title}
-                              onChange={handleChange}
-                              className="border px-3 py-1 rounded-md w-full text-sm focus:ring-blue-500 focus:border-blue-500"
-                            />
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap">
-                            <input
-                              name="customerName"
-                              value={formData.customerName}
-                              onChange={handleChange}
-                              className="border px-3 py-1 rounded-md w-full text-sm focus:ring-blue-500 focus:border-blue-500"
-                            />
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <input
-                              name="email"
-                              value={formData.email}
-                              onChange={handleChange}
-                              className="border px-3 py-1 rounded-md w-full text-sm focus:ring-blue-500 focus:border-blue-500"
-                            />
-                          </td>
-                          <td className="px-2 py-4 whitespace-nowrap">
-                            <input
-                              name="phone"
-                              value={formData.phone}
-                              onChange={handleChange}
-                              className="border px-3 py-1 rounded-md w-full text-sm focus:ring-blue-500 focus:border-blue-500"
-                            />
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap">
-                            <select
-                              name="source"
-                              value={formData.source}
-                              onChange={handleChange}
-                              className="border px-3 py-1 rounded-md w-full text-sm focus:ring-blue-500 focus:border-blue-500"
-                            >
-                              <option value="">Select Source</option>
-                              {uniqueSources.map((source) => (
-                                <option key={source} value={source}>
-                                  {source}
-                                </option>
-                              ))}
-                            </select>
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap">
-                            <select
-                              name="priority"
-                              value={formData.priority}
-                              onChange={handleChange}
-                              className="border px-3 py-1 rounded-md w-full text-sm focus:ring-blue-500 focus:border-blue-500"
-                            >
-                              <option value="High">High</option>
-                              <option value="Medium">Medium</option>
-                              <option value="Low">Low</option>
-                            </select>
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap">
-                            <select
-                              name="status"
-                              value={formData.status}
-                              onChange={handleChange}
-                              className="border px-3 py-1 rounded-md w-full text-sm focus:ring-blue-500 focus:border-blue-500"
-                            >
-                              <option value="New">New</option>
-                              <option value="In Progress">In Progress</option>
-                              <option value="Closed">Closed</option>
-                            </select>
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap">
-                            <input
-                              name="dueDate"
-                              type="date"
-                              value={formData.dueDate}
-                              onChange={handleChange}
-                              className="border px-3 py-1 rounded-md w-full text-sm focus:ring-blue-500 focus:border-blue-500"
-                            />
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap">
+                      {/* Title */}
+                      <td
+                        className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-center truncate max-w-xs"
+                        title={lead.title || "N/A"}
+                      >
+                        {lead.title || "N/A"}
+                      </td>
+
+                      {/* Customer */}
+                      <td
+                        className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center truncate max-w-xs"
+                        title={lead.customerName || "N/A"}
+                      >
+                        {lead.customerName || "N/A"}
+                      </td>
+
+                      {/* Email */}
+                      <td
+                        className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center truncate max-w-xs"
+                        title={lead.email || "N/A"}
+                      >
+                        {lead.email || "N/A"}
+                      </td>
+
+                      {/* Phone */}
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                        {lead.phone || "N/A"}
+                      </td>
+
+                      {/* Source */}
+                      <td
+                        className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center truncate max-w-xs"
+                        title={lead.source || "N/A"}
+                      >
+                        {lead.source || "N/A"}
+                      </td>
+
+                      {/* Priority */}
+                      <td className="px-4 py-4 whitespace-nowrap text-center">
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(lead.priority).bg} ${getPriorityColor(lead.priority).text}`}
+                        >
+                          {lead.priority || "N/A"}
+                        </span>
+                      </td>
+
+                      {/* Status dropdown */}
+                      <td className="px-4 py-4 whitespace-nowrap text-center">
+                        <div className="relative">
+                          <select
+                            value={lead.status || "New"}
+                            onChange={(e) => updateStatus(lead.id, e.target.value)}
+                            disabled={loading}
+                            className={`block w-full pl-3 pr-8 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 appearance-none ${lead.status === "New"
+                              ? "border-blue-200 bg-blue-50 text-blue-800"
+                              : lead.status === "In Progress"
+                                ? "border-yellow-200 bg-yellow-50 text-yellow-800"
+                                : "border-green-200 bg-green-50 text-green-800"
+                              }`}
+                          >
+                            <option value="New">New</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Closed">Closed</option>
+                          </select>
+                          <FiChevronDown className="absolute right-2 top-2.5 text-gray-400 text-xs pointer-events-none" />
+                        </div>
+                      </td>
+
+                      {/* Due Date */}
+                      <td className="px-4 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                        {lead.dueDate
+                          ? new Date(lead.dueDate).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "2-digit",
+                          })
+                          : "N/A"}
+                      </td>
+
+                      {/* Actions */}
+                      <td className="px-4 py-4 whitespace-nowrap text-center text-sm font-medium">
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => handleEditClick(lead)} // opens modal
+                            disabled={loading}
+                            className="text-blue-600 hover:text-blue-800 disabled:opacity-50"
+                            title="Edit"
+                          >
+                            <FiEdit className="w-4 h-4" />
+                          </button>
+                          <Popconfirm
+                            title="Are you sure you want to delete this lead?"
+                            okText="Yes"
+                            cancelText="No"
+                            okType="danger"
+                            onConfirm={() => deleteLead(lead.id)}
+                          >
                             <button
-                              onClick={handleEditSubmit}
                               disabled={loading}
-                              className="text-green-600 mr-2 hover:text-green-800 disabled:opacity-50 text-sm font-medium"
+                              className="text-red-600 hover:text-red-800 disabled:opacity-50"
+                              title="Delete"
                             >
-                              Save
+                              <FiTrash2 className="w-4 h-4" />
                             </button>
-                            <button
-                              onClick={() => setEditingLead(null)}
-                              disabled={loading}
-                              className="text-gray-600 hover:text-gray-800 disabled:opacity-50 text-sm font-medium"
-                            >
-                              Cancel
-                            </button>
-                          </td>
-                        </>
-                      ) : (
-                        <>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 truncate max-w-xs" title={lead.title || "N/A"}>
-                            {lead.title || "N/A"}
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 truncate max-w-xs" title={lead.customerName || "N/A"}>
-                            {lead.customerName || "N/A"}
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 truncate max-w-xs" title={lead.email || "N/A"}>
-                            {lead.email || "N/A"}
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {lead.phone || "N/A"}
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 truncate max-w-xs" title={lead.source || "N/A"}>
-                            {lead.source || "N/A"}
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap">
-                            <span
-                              className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(lead.priority).bg
-                                } ${getPriorityColor(lead.priority).text}`}
-                            >
-                              {lead.priority || "N/A"}
-                            </span>
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap">
-                            <div className="relative">
-                              <select
-                                value={lead.status || "New"}
-                                onChange={(e) => updateStatus(lead.id, e.target.value)}
-                                disabled={loading}
-                                className={`block w-full pl-3 pr-8 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 appearance-none ${lead.status === "New"
-                                  ? "border-blue-200 bg-blue-50 text-blue-800"
-                                  : lead.status === "In Progress"
-                                    ? "border-yellow-200 bg-yellow-50 text-yellow-800"
-                                    : "border-green-200 bg-green-50 text-green-800"
-                                  }`}
-                              >
-                                <option value="New">New</option>
-                                <option value="In Progress">In Progress</option>
-                                <option value="Closed">Closed</option>
-                              </select>
-                              <FiChevronDown className="absolute right-2 top-2.5 text-gray-400 text-xs pointer-events-none" />
-                            </div>
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {lead.dueDate
-                              ? new Date(lead.dueDate).toLocaleDateString("en-US", {
-                                year: "numeric",
-                                month: "short",
-                                day: "2-digit",
-                              })
-                              : "N/A"}
-                          </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                            <div className="flex items-center gap-3">
-                              <button
-                                onClick={() => handleEditClick(lead)}
-                                disabled={loading}
-                                className="text-blue-600 hover:text-blue-800 disabled:opacity-50"
-                                title="Edit"
-                              >
-                                <FiEdit className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => deleteLead(lead.id)}
-                                disabled={loading}
-                                className="text-red-600 hover:text-red-800 disabled:opacity-50"
-                                title="Delete"
-                              >
-                                <FiTrash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </>
-                      )}
+                          </Popconfirm>
+
+                        </div>
+                      </td>
                     </tr>
                   ))
                 )}
               </tbody>
+
             </table>
+            <Modal
+              title={
+                <div className="flex items-center gap-2">
+                  <FiEdit className="text-blue-500" />
+                  <span className="font-semibold text-gray-800">Edit Lead</span>
+                </div>
+              }
+              open={showModal}
+              onCancel={() => setShowModal(false)}
+              footer={null}
+              width={650}
+              destroyOnHidden
+            >
+              <Form
+                form={form}
+                layout="vertical"
+                onFinish={handleEditSubmit}
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <Form.Item name="title" label="Title" rules={[{ required: true }]}>
+                    <Input placeholder="Enter lead title" />
+                  </Form.Item>
+
+                  <Form.Item name="customerName" label="Customer Name" rules={[{ required: true }]}>
+                    <Input placeholder="Enter customer name" />
+                  </Form.Item>
+
+                  <Form.Item name="email" label="Email" rules={[{ type: "email", required: "true" }]}>
+                    <Input placeholder="Enter email" prefix={<FiEdit className="text-gray-400" />} />
+                  </Form.Item>
+
+                  <Form.Item name="phone" label="Phone" rules={[{ required: true }]}>
+                    <Input placeholder="Enter phone number" prefix={<FiEdit className="text-gray-400" />} />
+                  </Form.Item>
+
+                  <Form.Item name="source" label="Service" rules={[{ required: true }]}>
+                    <Select placeholder="Select service">
+                      {uniqueSources.map((src) => (
+                        <Select.Option key={src} value={src}>
+                          {src}
+                        </Select.Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+
+                  <Form.Item name="priority" label="Priority" rules={[{ required: true }]}>
+                    <Select placeholder="Select priority">
+                      <Select.Option value="High">High</Select.Option>
+                      <Select.Option value="Medium">Medium</Select.Option>
+                      <Select.Option value="Low">Low</Select.Option>
+                    </Select>
+                  </Form.Item>
+
+                  <Form.Item name="status" label="Status" rules={[{ required: true }]}>
+                    <Select placeholder="Select status">
+                      <Select.Option value="New">New</Select.Option>
+                      <Select.Option value="In Progress">In Progress</Select.Option>
+                      <Select.Option value="Closed">Closed</Select.Option>
+                    </Select>
+                  </Form.Item>
+
+                  <Form.Item name="dueDate" label="Due Date" rules={[{ required: true }]}>
+                    <DatePicker className="w-full" />
+                  </Form.Item>
+                </div>
+
+                <Form.Item name="notes" label="Notes">
+                  <Input.TextArea rows={3} placeholder="Additional notes..." />
+                </Form.Item>
+
+                <div className="flex justify-end gap-3 mt-4">
+                  <div className="flex justify-end gap-3 mt-4">
+                    <Button onClick={() => setShowModal(false)}>Cancel</Button>
+                    <Button type="primary" htmlType="submit" loading={loading}>
+                      Save Changes
+                    </Button>
+                  </div>
+                </div>
+              </Form>
+            </Modal>
+
           </div>
 
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
-              <div className="text-sm text-gray-700">
-                Page <span className="font-medium">{currentPage}</span> of <span className="font-medium">{totalPages}</span>
-              </div>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1 border rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-                >
-                  <FiChevronLeft className="mr-1" /> Previous
-                </button>
-                <button
-                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1 border rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-                >
-                  Next <FiChevronRight className="ml-1" />
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
