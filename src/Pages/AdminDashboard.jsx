@@ -96,7 +96,7 @@ const AdminDashboard = () => {
         return <CreateLead onSuccess={fetchLeads} />;
       case "profile":
         return <Profile />;
-      case "tasks":
+      case "assigns":
         return <AssignedLeadsPage />;
       case "employees": // Admin-specific tab
         return <ManageEmployees />;

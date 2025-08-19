@@ -81,7 +81,7 @@ const EmployeeDashboard = () => {
         return <Leads leads={leads} updateStatus={updateStatus} isLoading={isLoading} />;
       case "profile":
         return <Profile />;
-      case "tasks":
+      case "assigns":
         return <AssignedLeadsPage />;
       default:
         return <Leads leads={leads} updateStatus={updateStatus} isLoading={isLoading} />;

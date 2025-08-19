@@ -97,9 +97,9 @@ const Dashboard = () => {
         return <CreateLead onSuccess={fetchLeads} />;
       case "profile":
         return <Profile />;
-      case "tasks":
+      case "assigns":
         return <AssignedLeadsPage />;
-        case "AddUser":
+        case "Users":
         return <Register />;
       default:
         return <Analytics stats={stats} isLoading={isLoading} />;

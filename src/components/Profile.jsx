@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react';
 import api from '../utils/axiosInstance';
 import { Popconfirm, Button, message } from 'antd';
 
-
 const Profile = () => {
   const [user, setUser] = useState(null);
   const [activity, setActivity] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',

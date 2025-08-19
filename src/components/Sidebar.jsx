@@ -67,15 +67,15 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
     { id: "leads", label: "Leads", icon: <FiUsers className="text-lg" /> },
     { id: "CreateLead", label: "Create Lead", icon: <FiPlusCircle className="text-lg" /> },
     { id: "profile", label: "Profile", icon: <FiUser className="text-lg" /> },
-    { id: "tasks", label: "Tasks", icon: <FiUsers className="text-lg" /> },
-    { id: "AddUser", label: "Add User", icon: <FiUserPlus className="text-lg" />, role: "super admin" }
+    { id: "assigns", label: "Assigns", icon: <FiUsers className="text-lg" /> },
+    { id: "Users", label: "Users", icon: <FiUserPlus className="text-lg" />, role: "super admin" }
   ];
 
   // Role-based menu filtering
   let menuItems = [];
   if (role === "employee") {
     menuItems = allMenuItems.filter(item =>
-      ["leads", "profile", "tasks"].includes(item.id.toLowerCase())
+      ["leads", "profile", "assigns"].includes(item.id.toLowerCase())
     );
   } else if (role === "admin") {
     // Admin can access everything EXCEPT super admin-only items
