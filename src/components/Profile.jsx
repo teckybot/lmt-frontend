@@ -86,12 +86,24 @@ const Profile = () => {
     }
 
     try {
-      await api.put('/users/profile', formData);
+    const fd = new FormData();
+    fd.append("name", formData.name);
+    fd.append("email", formData.email);
+    if (formData.avatar instanceof File) {
+      fd.append("avatar", formData.avatar);
+    }
 
-      setUser({ ...user, ...formData });
-      localStorage.setItem('user', JSON.stringify({ ...user, ...formData }));
-      setIsEditing(false);
-      setProfileError(null);
+    const res = await api.put('/users/profile', fd, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    const updatedUser = res.data.user;
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    setIsEditing(false);
+    setProfileError(null);
     } catch (err) {
       console.error('Error updating profile:', err.response?.status, err.response?.data, err.message);
       setProfileError(err.response?.data?.message || 'Failed to update profile.');
@@ -144,7 +156,7 @@ const Profile = () => {
               <img
                 src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}`}
                 alt="Profile"
-                className="h-32 w-32 rounded-full mb-4"
+                className="h-48 w-48 rounded-full mb-4"
               />
               <h3 className="text-lg font-medium text-gray-900">{user.name}</h3>
               <p className="text-gray-500">{user.role || 'User'}</p>
@@ -226,16 +238,16 @@ const Profile = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Avatar URL</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Avatar</label>
                     <input
-                      type="url"
+                      type="file"
                       name="avatar"
-                      value={formData.avatar}
-                      onChange={handleInputChange}
+                      accept="image/*"
+                      onChange={(e) => setFormData(prev => ({ ...prev, avatar: e.target.files[0] }))}
                       className="w-full px-4 py-2 border rounded-md"
-                      placeholder="https://example.com/avatar.jpg"
                     />
                   </div>
+
                 </div>
                 <button
                   type="submit"
