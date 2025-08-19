@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../utils/axiosInstance';
+import { Popconfirm, Button, message } from 'antd';
 
 
 const Profile = () => {
@@ -266,7 +267,42 @@ const Profile = () => {
                 </div>
               </div>
 
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Activity</h3>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Recent Activity</h3>
+
+                {/* <Popconfirm
+                  title="Are you sure you want to clear all activity history?"
+                  onConfirm={async () => {
+                    try {
+                      // Optional: show loading
+                      message.loading({ content: "Clearing history...", key: "clear" });
+
+                      const res = await api.delete("/activity/clear");
+                      message.success({ content: res.data.message || "Activity history cleared successfully!", key: "clear" });
+
+                      // Clear frontend state
+                      setActivity([]);
+                      setActivitySummary({ leadsAdded: 0, leadsClosed: 0 });
+
+                      // Optionally, you can fetch latest activity from backend if needed
+                      // const { data } = await api.get("/activity");
+                      // setActivity(data.activity);
+                      // setActivitySummary(data.summary);
+                    } catch (err) {
+                      console.error(err);
+                      message.error("Failed to clear activity history.");
+                    }
+                  }}
+                  okText="Yes"
+                  cancelText="No"
+                >
+                  <Button type="primary" danger size="small">
+                    Clear History
+                  </Button>
+                </Popconfirm> */}
+
+              </div>
+
               {activityError && (
                 <p className="text-red-500 mb-4">Activity Error: {activityError}</p>
               )}
@@ -275,23 +311,36 @@ const Profile = () => {
                   <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
                 </div>
               ) : activity.length > 0 ? (
-                <div className="space-y-4">
-                  {activity.map((item, index) => (
-                    <div key={index} className="bg-white p-4 rounded shadow">
-                      <div className="flex justify-between">
-                        <p className="text-sm font-medium text-gray-900">{item.action || 'Unknown Action'}</p>
-                        <p className="text-sm text-gray-500">
-                          {item.timestamp ? new Date(item.timestamp).toLocaleString() : 'N/A'}
-                        </p>
-
-                      </div>
-                      <p className="text-sm text-gray-500 mt-1">{item.details || 'No details available'}</p>
-                    </div>
-                  ))}
+                <div className="overflow-y-auto max-h-64 border rounded-lg">
+                  <table className="min-w-full divide-y divide-gray-200 text-sm">
+                    <thead className="bg-gray-100 sticky top-0">
+                      <tr>
+                        <th className="px-4 py-2 text-left font-medium text-gray-600">Action</th>
+                        <th className="px-4 py-2 text-left font-medium text-gray-600">Username</th>
+                        <th className="px-4 py-2 text-left font-medium text-gray-600">Title</th>
+                        <th className="px-4 py-2 text-left font-medium text-gray-600">Details</th>
+                        <th className="px-4 py-2 text-left font-medium text-gray-600">Timestamp</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {activity.map((item, index) => (
+                        <tr key={index}>
+                          <td className="px-4 py-2 text-gray-900">{item.action}</td>
+                          <td className="px-4 py-2 text-gray-900">{item.username}</td>
+                          <td className="px-4 py-2 text-gray-900">{item.leadTitle || '-'}</td>
+                          <td className="px-4 py-2 text-gray-500">{item.details || 'No details available'}</td>
+                          <td className="px-4 py-2 text-gray-500">
+                            {item.createdAt ? new Date(item.createdAt).toLocaleString() : 'N/A'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               ) : (
                 <p className="text-gray-500 text-center py-4">No recent activity available</p>
               )}
+
             </div>
           )}
         </div>

@@ -339,7 +339,7 @@ const LeadsTable = () => {
 
   return (
     <div className="p-4 bg-white mt-16 md:mt-0">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-lg p-4 md:p-6">
           <div className="mb-6">
             <h2 className="text-xl md:text-2xl font-bold text-gray-800">Leads Management</h2>
