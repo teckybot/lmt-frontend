@@ -5,7 +5,6 @@ import Dashboard from "./Pages/Dashboard";
 import Login from "./Pages/Login";
 import PrivateRoute from "./components/PrivateRoute";
 import Sidebar from "./components/Sidebar";
-import Header from "./components/Header";
 import Leads from "./components/Leads";
 import AdminDashboard from "./Pages/AdminDashboard"; // Create this file
 import EmployeeDashboard from "./Pages/EmployeeDashboard"; // Create this file
@@ -17,7 +16,6 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/side" element={<Sidebar />} />
-        <Route path="/head" element={<Header />} />
         <Route path="/Leads" element={<Leads />} />
 
         <Route

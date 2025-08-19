@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Teckybot from "../Data/Teckybot.png";
-import { 
-  FiHome, FiUsers, FiPlusCircle, FiUser, FiLogOut, 
-  FiMoon, FiSun, FiMenu, FiX 
+import {
+  FiHome, FiUsers, FiPlusCircle, FiUser, FiLogOut,
+  FiMoon, FiSun, FiMenu, FiX, FiUserPlus
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
@@ -67,7 +67,8 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
     { id: "leads", label: "Leads", icon: <FiUsers className="text-lg" /> },
     { id: "CreateLead", label: "Create Lead", icon: <FiPlusCircle className="text-lg" /> },
     { id: "profile", label: "Profile", icon: <FiUser className="text-lg" /> },
-    { id: "tasks", label: "Tasks", icon: <FiUsers className="text-lg" /> }
+    { id: "tasks", label: "Tasks", icon: <FiUsers className="text-lg" /> },
+    { id: "AddUser", label: "Add User", icon: <FiUserPlus className="text-lg" />, role: "super admin" }
   ];
 
   // Role-based menu filtering
@@ -76,8 +77,11 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
     menuItems = allMenuItems.filter(item =>
       ["leads", "profile", "tasks"].includes(item.id.toLowerCase())
     );
-  } else {
-    // Admin / Super Admin see all
+  } else if (role === "admin") {
+    // Admin can access everything EXCEPT super admin-only items
+    menuItems = allMenuItems.filter(item => item.role !== "super admin");
+  } else if (role === "super admin") {
+    // Super admin sees everything
     menuItems = allMenuItems;
   }
 
@@ -91,7 +95,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
     <div className="flex h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-300">
       {/* Mobile Header */}
       <header className="md:hidden fixed top-0 left-0 right-0 z-30 bg-white dark:bg-gray-900 shadow-sm h-20 flex items-center px-4">
-        <button 
+        <button
           className="p-2 rounded-md hamburger-button"
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         >
@@ -138,16 +142,14 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
                     setActiveTab(item.id);
                     if (window.innerWidth < 768) setIsSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${
-                    activeTab === item.id
+                  className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${activeTab === item.id
                       ? "bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 font-medium"
                       : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  }`}
+                    }`}
                 >
                   <span
-                    className={`mr-3 ${
-                      activeTab === item.id ? "text-blue-500" : "text-gray-400"
-                    }`}
+                    className={`mr-3 ${activeTab === item.id ? "text-blue-500" : "text-gray-400"
+                      }`}
                   >
                     {item.icon}
                   </span>

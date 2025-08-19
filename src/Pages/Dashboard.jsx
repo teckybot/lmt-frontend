@@ -6,6 +6,7 @@ import Leads from "../components/Leads";
 import Profile from "../components/Profile";
 import CreateLead from "../components/CreateLead";
 import AssignedLeadsPage from "../components/AssignedLeadsPage";
+import Register from "../components/Register";
 import api from "../utils/axiosInstance";
 
 const Dashboard = () => {
@@ -98,6 +99,8 @@ const Dashboard = () => {
         return <Profile />;
       case "tasks":
         return <AssignedLeadsPage />;
+        case "AddUser":
+        return <Register />;
       default:
         return <Analytics stats={stats} isLoading={isLoading} />;
     }
