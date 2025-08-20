@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Table, Button, Modal, Form, Input, Select, message, Popconfirm } from "antd";
-import { FiUser, FiMail, FiLock, FiPhone, FiUserCheck, FiUserPlus, FiEdit, FiTrash2, FiShoppingBag } from "react-icons/fi";
+import { FiUser, FiMail, FiLock, FiPhone, FiUserCheck, FiUserPlus, FiEdit, FiTrash2, FiSearch } from "react-icons/fi";
 import api from "../utils/axiosInstance";
+import Teckybot from "../Data/Teckybot.png";
 
 const { Option } = Select;
-const { Search } = Input;
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -85,11 +85,13 @@ const UserManagement = () => {
       title: "Email",
       dataIndex: "email",
       key: "email",
+      responsive: ['md'],
     },
     {
       title: "Phone",
       dataIndex: "phone",
       key: "phone",
+      responsive: ['md'],
     },
     {
       title: "Role",
@@ -117,14 +119,21 @@ const UserManagement = () => {
             type="link"
             icon={<FiEdit className="text-lg" />}
             onClick={() => openModal(record)}
+            className="text-gray-900 hover:text-gray-900 p-0"
           />
           <Popconfirm
             title="Are you sure you want to delete this user?"
             onConfirm={() => handleDelete(record.id)}
             okText="Yes"
             cancelText="No"
+            okButtonProps={{ className: "bg-gray-900 border-gray-900 hover:bg-gray-800" }}
           >
-            <Button type="link" danger icon={<FiTrash2 className="text-lg" />} />
+            <Button
+              type="link"
+              danger
+              icon={<FiTrash2 className="text-lg" />}
+              className="text-red-600 hover:text-red-600 p-0"
+            />
           </Popconfirm>
         </div>
       ),
@@ -143,47 +152,86 @@ const UserManagement = () => {
   });
 
   return (
-    <div className="p-6 bg-white rounded-xl shadow-md">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Manage Users</h2>
-        <div className="flex justify-center flex-1">
-          <input
-            type="text"
-            placeholder="Search by name, email, phone or role"
-            value={searchTerm}  
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                  placeholder-gray-400 transition duration-200 "
-          />
-
+    <div className="p-4 bg-white rounded-xl shadow-md lg:mt-5 mt-28">
+      <div className="flex flex-col gap-4 mb-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-semibold">Manage Users</h1>
+          <Button
+            type="primary"
+            icon={<FiUserPlus className="text-base" />}
+            onClick={() => openModal()}
+            className="
+                bg-gradient-to-r from-gray-800 to-gray-900 
+                border-0 
+                hover:from-gray-900 hover:to-gray-800 
+                focus:from-gray-900 focus:to-gray-800 
+                active:from-gray-950 active:to-gray-900 
+                shadow-md hover:shadow-lg 
+                transition-all duration-200 
+                flex items-center justify-center 
+                rounded-lg 
+                px-4 py-2 
+                h-auto
+                font-medium
+                text-white
+              "
+            size="middle"
+          >
+            <span className="flex items-center">
+              Add User
+            </span>
+          </Button>
         </div>
-        <Button
-          type="primary"
-          icon={<FiUserPlus />}
-          onClick={() => openModal()}
-        >
-          Add User
-        </Button>
+
+        <div className="w-full">
+          <div className="relative">
+            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search users..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900
+                    placeholder-gray-400 transition duration-200"
+            />
+          </div>
+        </div>
       </div>
 
-      <Table
-        columns={columns}
-        dataSource={filteredUsers}
-        rowKey="id"
-        loading={loading}
-        bordered
-        pagination={{
-          current: currentPage,
-          pageSize: pageSize,
-          total: filteredUsers.length,
-          showSizeChanger: true,
-          pageSizeOptions: ["5", "10", "20", "50"],
-          onChange: (page, size) => {
-            setCurrentPage(page);
-            setPageSize(size);
-          },
-        }}
-      />
+      {loading ? (
+        <div className="flex justify-center items-center py-16">
+          <div className="modern-loader">
+            <div className="loader-circle"></div>
+            <div className="loader-text">Loading users...</div>
+          </div>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <Table
+            columns={columns}
+            dataSource={filteredUsers}
+            rowKey="id"
+            bordered
+            pagination={{
+              current: currentPage,
+              pageSize: pageSize,
+              total: filteredUsers.length,
+              showSizeChanger: true,
+              pageSizeOptions: ["5", "10", "20", "50"],
+              onChange: (page, size) => {
+                setCurrentPage(page);
+                setPageSize(size);
+              },
+              responsive: true,
+              showLessItems: true,
+              className: "px-2",
+            }}
+            scroll={{ x: true }}
+            size="middle"
+            className="custom-table"
+          />
+        </div>
+      )}
 
       <Modal
         title={editingUser ? "Edit User" : "Add User"}
@@ -191,7 +239,18 @@ const UserManagement = () => {
         onCancel={() => setModalVisible(false)}
         onOk={() => form.submit()}
         okText={editingUser ? "Update" : "Create"}
+        okButtonProps={{
+          className: "bg-gray-900 border-gray-900 hover:bg-gray-900 hover:border-gray-900 focus:bg-gray-900 focus:border-gray-900"
+        }}
+        cancelButtonProps={{ className: "" }}
+        width={400}
+        className="user-modal"
+        style={{ top: 120 }}
       >
+        <div className="flex justify-center mb-4">
+          <img src={Teckybot} alt="Teckybot Logo" className="h-10 object-contain" />
+        </div>
+
         <Form
           form={form}
           layout="vertical"
@@ -202,7 +261,7 @@ const UserManagement = () => {
             label="Full Name"
             rules={[{ required: true, message: "Please enter full name" }]}
           >
-            <Input prefix={<FiUser />} />
+            <Input prefix={<FiUser className="text-gray-400" />} className="focus:border-gray-900" />
           </Form.Item>
 
           <Form.Item
@@ -213,7 +272,7 @@ const UserManagement = () => {
               { type: "email", message: "Invalid email" },
             ]}
           >
-            <Input prefix={<FiMail />} />
+            <Input prefix={<FiMail className="text-gray-400" />} className="focus:border-gray-900" />
           </Form.Item>
 
           {!editingUser && (
@@ -222,7 +281,7 @@ const UserManagement = () => {
               label="Password"
               rules={[{ required: true, message: "Please enter password" }]}
             >
-              <Input.Password prefix={<FiLock />} />
+              <Input.Password prefix={<FiLock className="text-gray-400" />} className="focus:border-gray-900" />
             </Form.Item>
           )}
 
@@ -231,7 +290,7 @@ const UserManagement = () => {
             label="Phone"
             rules={[{ required: true, message: "Please enter phone number" }]}
           >
-            <Input prefix={<FiPhone />} />
+            <Input prefix={<FiPhone className="text-gray-400" />} className="focus:border-gray-900" />
           </Form.Item>
 
           <Form.Item
@@ -239,7 +298,11 @@ const UserManagement = () => {
             label="Role"
             rules={[{ required: true, message: "Please select a role" }]}
           >
-            <Select prefix={<FiUserCheck />}>
+            <Select
+              suffixIcon={<FiUserCheck className="text-gray-400" />}
+              className="focus:border-gray-900"
+              popupClassName="role-dropdown"
+            >
               <Option value="employee">Employee</Option>
               <Option value="admin">Admin</Option>
               <Option value="super admin">Super Admin</Option>
@@ -247,6 +310,60 @@ const UserManagement = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      <style jsx>{`
+        .modern-loader {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .loader-circle {
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          background: conic-gradient(#0000 10%, #111827);
+          -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 8px), #000 0);
+          mask: radial-gradient(farthest-side, #0000 calc(100% - 8px), #000 0);
+          animation: spin 1.2s linear infinite;
+        }
+        
+        .loader-text {
+          margin-top: 12px;
+          font-size: 14px;
+          color: #6b7280;
+          font-weight: 500;
+        }
+        
+        @keyframes spin {
+          to {
+            transform: rotate(1turn);
+          }
+        }
+        
+        @media (max-width: 768px) {
+          :global(.ant-table-thead > tr > th),
+          :global(.ant-table-tbody > tr > td) {
+            padding: 8px;
+          }
+          
+          :global(.ant-table-content) {
+            font-size: 14px;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          :global(.ant-table-thead > tr > th),
+          :global(.ant-table-tbody > tr > td) {
+            padding: 6px;
+          }
+          
+          :global(.ant-table-content) {
+            font-size: 13px;
+          }
+        }
+      `}</style>
     </div>
   );
 };
