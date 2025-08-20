@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { FiUser } from "react-icons/fi";
-import api from '../utils/axiosInstance'; // Assuming you have this configured
+import api from '../utils/axiosInstance'; 
 
 const Header = () => {
   const [user, setUser] = useState(null);
@@ -11,25 +11,22 @@ const Header = () => {
         const userRes = await api.get('/users/profile');
         const userData = userRes.data;
         setUser(userData);
-        // We can also update localStorage here for quick access later if needed.
+       
         localStorage.setItem('user', JSON.stringify(userData));
       } catch (err) {
         console.error('Error fetching user data for header:', err);
-        // Handle token expiration or other errors, e.g., by clearing localStorage and redirecting to login.
         localStorage.removeItem('user');
         localStorage.removeItem('token');
         setUser(null);
       }
     };
 
-    // Check for a token before fetching data to prevent unnecessary API calls.
     if (localStorage.getItem('token')) {
       fetchUserData();
     } else {
-      setUser(null); // No token, no user
+      setUser(null); 
     }
 
-    // Optional: Add a listener for localStorage changes if you want real-time updates across tabs.
     const handleStorageChange = () => {
       const storedUser = localStorage.getItem("user");
       setUser(storedUser ? JSON.parse(storedUser) : null);
@@ -43,9 +40,9 @@ const Header = () => {
   return (
     <header
       className="hidden md:flex items-center justify-center px-6 py-3 h-16 shadow-sm
-                   bg-white/95 dark:bg-gray-900 backdrop-blur-sm
-                   text-gray-900 dark:text-gray-100 border-b border-gray-100 dark:border-gray-800
-                   transition-colors duration-300 relative"
+      bg-white/95 dark:bg-gray-900 backdrop-blur-sm
+    text-gray-900 dark:text-gray-100 border-b border-gray-100 dark:border-gray-800
+      transition-colors duration-300 relative"
     >
       {/* Brand - Centered */}
       <div className="text-xl font-bold text-blue-600 dark:text-blue-400 tracking-wide relative">
@@ -67,9 +64,9 @@ const Header = () => {
           />
         ) : (
           <div className="w-10 h-10 flex items-center justify-center rounded-full
-                         bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700
-                         border border-gray-200 dark:border-gray-700
-                         transition-colors duration-200 cursor-pointer">
+            bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700
+              border border-gray-200 dark:border-gray-700
+            transition-colors duration-200 cursor-pointer">
             <FiUser className="text-gray-500 dark:text-gray-300 text-xl" />
           </div>
         )}
