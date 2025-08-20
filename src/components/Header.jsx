@@ -165,17 +165,48 @@ const Header = () => {
           >
             <FiSearch className="text-xl text-gray-600 dark:text-gray-300" />
           </button>
+        </div>
 
-          <button
-            className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            onClick={() => setShowNotifications(!showNotifications)}
-          >
+        <Dropdown
+          trigger={["click"]}
+          placement="bottomRight"
+          overlay={
+            <Menu className="w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100 dark:border-gray-700">
+                <span className="font-semibold text-gray-700 dark:text-gray-200">Notifications</span>
+                {/* <FiX className="cursor-pointer text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" /> */}
+              </div>
+
+              <Menu.Item key="n1" className="px-4 py-3 text-sm text-gray-700 dark:!text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
+                📢 New lead assigned to you
+                <div className="text-xs text-gray-400">2 min ago</div>
+              </Menu.Item>
+
+              <Menu.Item key="n2" className="px-4 py-3 text-sm text-gray-700 dark:!text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
+                ✅ Task "Follow up client" marked complete
+                <div className="text-xs text-gray-400">1 hr ago</div>
+              </Menu.Item>
+
+              <Menu.Item key="n3" className="px-4 py-3 text-sm text-gray-700 dark:!text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
+                💡 Don’t forget tomorrow’s team meeting
+                <div className="text-xs text-gray-400">3 hrs ago</div>
+              </Menu.Item>
+
+              <div className="px-4 py-2 text-center border-t border-gray-100 dark:border-gray-700">
+                <button className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                  View all
+                </button>
+              </div>
+            </Menu>
+          }
+        >
+          <button className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
             <FiBell className="text-xl text-gray-600 dark:text-gray-300" />
             <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
               3
             </span>
           </button>
-        </div>
+        </Dropdown>
 
         <div className="flex items-center space-x-3">
           <span className="font-medium text-sm text-gray-600 dark:text-gray-300">
