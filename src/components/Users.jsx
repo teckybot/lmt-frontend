@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { Table, Button, Modal, Form, Input, Select, message, Popconfirm } from "antd";
-import { FiUser,FiMail,FiLock,FiUserCheck,FiUserPlus, FiEdit, FiTrash2 } from "react-icons/fi";
+import { FiUser, FiMail, FiLock, FiPhone, FiUserCheck, FiUserPlus, FiEdit, FiTrash2, FiShoppingBag } from "react-icons/fi";
 import api from "../utils/axiosInstance";
 
 const { Option } = Select;
+const { Search } = Input;
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [form] = Form.useForm();
 
   // Fetch Users
@@ -92,13 +94,12 @@ const UserManagement = () => {
       key: "role",
       render: (role) => (
         <span
-          className={`px-2 py-1 rounded text-xs font-medium ${
-            role === "super admin"
+          className={`px-2 py-1 rounded text-xs font-medium ${role === "super admin"
               ? "bg-red-100 text-red-600"
               : role === "admin"
-              ? "bg-blue-100 text-blue-600"
-              : "bg-green-100 text-green-600"
-          }`}
+                ? "bg-blue-100 text-blue-600"
+                : "bg-green-100 text-green-600"
+            }`}
         >
           {role}
         </span>
@@ -127,10 +128,31 @@ const UserManagement = () => {
     },
   ];
 
+  // Filtered users
+  const filteredUsers = users.filter((user) => {
+    const search = searchTerm.toLowerCase();
+    return (
+      user.name?.toLowerCase().includes(search) ||
+      user.email?.toLowerCase().includes(search) ||
+      user.phone?.toLowerCase().includes(search) ||
+      user.role?.toLowerCase().includes(search)
+    );
+  });
+
   return (
     <div className="p-6 bg-white rounded-xl shadow-md">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Manage Users</h2>
+        <div className="flex justify-center flex-1">
+          <Search
+            placeholder="Search by name, email, phone or role"
+            allowClear
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)} 
+            style={{ maxWidth: 400, width: "100%" }}
+          />
+
+        </div>
         <Button
           type="primary"
           icon={<FiUserPlus />}
@@ -142,7 +164,7 @@ const UserManagement = () => {
 
       <Table
         columns={columns}
-        dataSource={users}
+        dataSource={filteredUsers}
         rowKey="id"
         loading={loading}
         bordered
@@ -194,7 +216,7 @@ const UserManagement = () => {
             label="Phone"
             rules={[{ required: true, message: "Please enter phone number" }]}
           >
-            <Input />
+            <Input prefix={<FiPhone />} />
           </Form.Item>
 
           <Form.Item
