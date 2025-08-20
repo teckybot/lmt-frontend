@@ -5,7 +5,7 @@ import Analytics from "../components/Analytics";
 import Leads from "../components/Leads";
 import Profile from "../components/Profile";
 import CreateLead from "../components/CreateLead";
-import AssignedLeadsPage from "../components/AssignedLeadsPage";
+import LeadTable from "../components/Assigns/LeadTable";
 // import ManageEmployees from "../components/ManageEmployees"; // admin-specific
 import api from "../utils/axiosInstance";
 
@@ -46,7 +46,7 @@ const AdminDashboard = () => {
 
   const updateStatus = async (leadId, newStatus) => {
     try {
-      await api.put(`/leads/${leadId}/status`, { status: newStatus });
+      await api.patch(`/leads/${leadId}/status`, { status: newStatus });
       await fetchLeads();
     } catch (err) {
       console.error("Error updating status", err);
@@ -97,7 +97,7 @@ const AdminDashboard = () => {
       case "profile":
         return <Profile />;
       case "assigns":
-        return <AssignedLeadsPage />;
+        return <LeadTable role={"admin"} />;
       case "employees": // Admin-specific tab
         return <ManageEmployees />;
       default:

@@ -5,7 +5,7 @@ import Analytics from "../components/Analytics";
 import Leads from "../components/Leads";
 import Profile from "../components/Profile";
 import CreateLead from "../components/CreateLead";
-import AssignedLeadsPage from "../components/AssignedLeadsPage";
+import LeadTable from "../components/Assigns/LeadTable";
 import UserManagement from "../components/Users";
 import api from "../utils/axiosInstance";
 
@@ -15,22 +15,30 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [error, setError] = useState(null);
+  const [userRole, setUserRole] = useState(null);
   const navigate = useNavigate();
 
-  const fetchLeads = useCallback(async () => {
+  const fetchLeadsAndProfile = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const res = await api.get("/leads");
-      setLeads(res.data);
+
+      // Fetch both leads and user profile in parallel for efficiency
+      const [leadsRes, userRes] = await Promise.all([
+        api.get("/leads"),
+        api.get("/users/profile"),
+      ]);
+
+      setLeads(leadsRes.data);
+      setUserRole(userRes.data.role);
 
       // Calculate stats
       const statsData = {
-        total: res.data.length,
-        new: res.data.filter((lead) => lead.status === "New").length,
-        inProgress: res.data.filter((lead) => lead.status === "In Progress").length,
-        closed: res.data.filter((lead) => lead.status === "Closed").length,
-        totalValue: res.data.reduce((sum, lead) => sum + (parseFloat(lead.value) || 0), 0),
+        total: leadsRes.data.length,
+        new: leadsRes.data.filter((lead) => lead.status === "New").length,
+        inProgress: leadsRes.data.filter((lead) => lead.status === "In Progress").length,
+        closed: leadsRes.data.filter((lead) => lead.status === "Closed").length,
+        totalValue: leadsRes.data.reduce((sum, lead) => sum + (parseFloat(lead.value) || 0), 0),
       };
       setStats(statsData);
     } catch (err) {
@@ -45,19 +53,19 @@ const Dashboard = () => {
     }
   }, [navigate]);
 
+  useEffect(() => {
+    fetchLeadsAndProfile();
+  }, [fetchLeadsAndProfile]);
+
   const updateStatus = async (leadId, newStatus) => {
     try {
-      await api.put(`/leads/${leadId}/status`, { status: newStatus });
-      await fetchLeads();
+      await api.patch(`/leads/${leadId}/status`, { status: newStatus });
+      await fetchLeadsAndProfile();
     } catch (err) {
       console.error("Error updating status", err);
       setError("Failed to update status. Please try again.");
     }
   };
-
-  useEffect(() => {
-    fetchLeads();
-  }, [fetchLeads]);
 
   const renderContent = () => {
     if (isLoading && activeTab !== "CreateLead") {
@@ -77,7 +85,7 @@ const Dashboard = () => {
               <p className="font-medium">Error</p>
               <p className="text-sm">{error}</p>
               <button
-                onClick={fetchLeads}
+                onClick={fetchLeadsAndProfile}
                 className="mt-2 text-sm text-blue-600 hover:text-blue-800"
               >
                 Retry
@@ -94,11 +102,11 @@ const Dashboard = () => {
       case "leads":
         return <Leads leads={leads} updateStatus={updateStatus} isLoading={isLoading} />;
       case "CreateLead":
-        return <CreateLead onSuccess={fetchLeads} />;
+        return <CreateLead onSuccess={fetchLeadsAndProfile} />;
       case "profile":
         return <Profile />;
       case "assigns":
-        return <AssignedLeadsPage />;
+        return <LeadTable role={userRole} />;
         case "Users":
         return <UserManagement />;
       default:

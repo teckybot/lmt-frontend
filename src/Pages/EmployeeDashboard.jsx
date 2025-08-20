@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import Leads from "../components/Leads";
 import Profile from "../components/Profile";
-import AssignedLeadsPage from "../components/AssignedLeadsPage";
+import LeadTable from "../components/Assigns/LeadTable";
 import api from "../utils/axiosInstance";
 
 const EmployeeDashboard = () => {
@@ -17,7 +17,7 @@ const EmployeeDashboard = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const res = await api.get("/my-leads"); // endpoint for employee's own leads
+      const res = await api.get("/leads/my-leads");
       setLeads(res.data);
     } catch (err) {
       console.error("Error fetching leads", err);
@@ -82,7 +82,7 @@ const EmployeeDashboard = () => {
       case "profile":
         return <Profile />;
       case "assigns":
-        return <AssignedLeadsPage />;
+        return <LeadTable role={"employee"} />;
       default:
         return <Leads leads={leads} updateStatus={updateStatus} isLoading={isLoading} />;
     }
