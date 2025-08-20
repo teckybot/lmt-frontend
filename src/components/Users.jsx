@@ -12,6 +12,9 @@ const UserManagement = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
   const [form] = Form.useForm();
 
   // Fetch Users
@@ -95,10 +98,10 @@ const UserManagement = () => {
       render: (role) => (
         <span
           className={`px-2 py-1 rounded text-xs font-medium ${role === "super admin"
-              ? "bg-red-100 text-red-600"
-              : role === "admin"
-                ? "bg-blue-100 text-blue-600"
-                : "bg-green-100 text-green-600"
+            ? "bg-red-100 text-red-600"
+            : role === "admin"
+              ? "bg-blue-100 text-blue-600"
+              : "bg-green-100 text-green-600"
             }`}
         >
           {role}
@@ -148,7 +151,7 @@ const UserManagement = () => {
             placeholder="Search by name, email, phone or role"
             allowClear
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)} 
+            onChange={(e) => setSearchTerm(e.target.value)}
             style={{ maxWidth: 400, width: "100%" }}
           />
 
@@ -168,6 +171,17 @@ const UserManagement = () => {
         rowKey="id"
         loading={loading}
         bordered
+        pagination={{
+          current: currentPage,
+          pageSize: pageSize,
+          total: filteredUsers.length,
+          showSizeChanger: true,
+          pageSizeOptions: ["5", "10", "20", "50"],
+          onChange: (page, size) => {
+            setCurrentPage(page);
+            setPageSize(size);
+          },
+        }}
       />
 
       <Modal
