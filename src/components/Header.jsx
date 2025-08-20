@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { FiUser, FiSearch, FiBell, FiSettings, FiX, FiLogOut } from "react-icons/fi";
 import { Dropdown, Menu, message } from "antd";
-import api from '../utils/axiosInstance'; 
+import api from '../utils/axiosInstance';
 
 
 const ProfileDropdownMenu = ({ user, handleLogout }) => {
@@ -24,18 +24,31 @@ const ProfileDropdownMenu = ({ user, handleLogout }) => {
           </span>
         </div>
       </Menu.Item>
-      <Menu.Item key="profile" className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-        <FiUser className="inline mr-2 text-lg" />
+      <Menu.Item
+        key="profile"
+        className="px-4 py-2 text-sm text-gray-700 dark:!text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+      >
+        <FiUser className="inline mr-2 text-lg dark:text-white" />
         Profile
       </Menu.Item>
-      <Menu.Item key="settings" className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-        <FiSettings className="inline mr-2 text-lg" />
+
+      <Menu.Item
+        key="settings"
+        className="px-4 py-2 text-sm text-gray-700 dark:!text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+      >
+        <FiSettings className="inline mr-2 text-lg dark:text-white" />
         Settings
       </Menu.Item>
-      <Menu.Item key="logout" onClick={handleLogout} className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-        <FiLogOut className="inline mr-2 text-lg" />
+
+      <Menu.Item
+        key="logout"
+        onClick={handleLogout}
+        className="px-4 py-2 text-sm text-gray-700 dark:!text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+      >
+        <FiLogOut className="inline mr-2 text-lg dark:text-white" />
         Sign out
       </Menu.Item>
+
     </Menu>
   );
 
@@ -84,7 +97,7 @@ const Header = () => {
     if (localStorage.getItem('token')) {
       fetchUserData();
     } else {
-      setUser(null); 
+      setUser(null);
     }
   }, []);
 
@@ -146,14 +159,14 @@ const Header = () => {
       <div className="absolute right-6 flex items-center space-x-4">
         {/* Action Icons */}
         <div className="flex items-center space-x-3">
-          <button 
+          <button
             className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             onClick={() => setShowSearch(!showSearch)}
           >
             <FiSearch className="text-xl text-gray-600 dark:text-gray-300" />
           </button>
-          
-          <button 
+
+          <button
             className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             onClick={() => setShowNotifications(!showNotifications)}
           >
@@ -168,7 +181,7 @@ const Header = () => {
           <span className="font-medium text-sm text-gray-600 dark:text-gray-300">
             {user?.role ? user.role.toUpperCase() : "GUEST"}
           </span>
-          
+
           {/* User profile dropdown */}
           {user && <ProfileDropdownMenu user={user} handleLogout={handleLogout} />}
         </div>
