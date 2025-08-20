@@ -15,7 +15,8 @@ const LeadTable = ({ role }) => {
   const fetchLeads = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/leads'); // your endpoint for fetching leads
+      const url = role === 'employee' ? '/leads/my-leads' : '/leads';
+      const res = await api.get(url);
       setLeads(res.data);
     } catch (err) {
       console.error(err);
@@ -47,6 +48,14 @@ const LeadTable = ({ role }) => {
         ))
     },
     {
+      title: 'Assigned By',
+      key: 'assignedBy',
+      render: (_, record) =>
+        record.assignedByNames?.length ? record.assignedByNames.map((n, i) => (
+          <Tag key={i} color="purple">{n}</Tag>
+        )) : null
+    },
+    ...(role === 'employee' ? [] : [{
       title: 'Action',
       key: 'action',
       render: (_, record) => (
@@ -58,7 +67,7 @@ const LeadTable = ({ role }) => {
           )}
         </>
       ),
-    },
+    }]),
   ];
 
   return (
@@ -75,6 +84,7 @@ const LeadTable = ({ role }) => {
         <AssignModal
           visible={assignModalVisible}
           lead={selectedLead}
+          role={role}
           onClose={() => { setAssignModalVisible(false); fetchLeads(); }}
         />
       )}
@@ -82,6 +92,7 @@ const LeadTable = ({ role }) => {
       {bulkModalVisible && (
         <BulkAssignModal
           visible={bulkModalVisible}
+          role={role}
           onClose={() => { setBulkModalVisible(false); fetchLeads(); }}
         />
       )}

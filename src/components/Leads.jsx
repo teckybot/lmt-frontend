@@ -11,6 +11,7 @@ import api from "../utils/axiosInstance";
 
 const LeadsTable = () => {
   const [leads, setLeads] = useState([]);
+  const [role, setRole] = useState(null);
   const [editingLead, setEditingLead] = useState(null);
   const [formData, setFormData] = useState({
     title: "",
@@ -38,6 +39,13 @@ const LeadsTable = () => {
   const token = localStorage.getItem("token");
 
   useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        setRole((parsed.role || '').toLowerCase());
+      } catch {}
+    }
     fetchLeads();
   }, []);
 
@@ -53,7 +61,8 @@ const LeadsTable = () => {
   const fetchLeads = async () => {
     setLoading(true);
     try {
-      const res = await api.get("/leads");
+      const endpoint = (JSON.parse(localStorage.getItem('user') || '{}').role || '').toLowerCase() === 'employee' ? '/leads/my-leads' : '/leads';
+      const res = await api.get(endpoint);
 
       setLeads(res.data);
     } catch (err) {
@@ -66,6 +75,7 @@ const LeadsTable = () => {
 
   const updateStatus = async (leadId, newStatus) => {
     try {
+      if (role === 'employee') return; // employees cannot update
       setLoading(true);
       await api.patch(`/leads/${leadId}/status`, { status: newStatus });
       setLeads((prevLeads) =>
@@ -461,32 +471,33 @@ const LeadsTable = () => {
                 <div key={lead.id} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-medium text-gray-900 truncate">{lead.title || "N/A"}</h3>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleEditClick(lead)}
-                        disabled={loading}
-                        className="text-blue-600 hover:text-blue-800 disabled:opacity-50"
-                        title="Edit"
-                      >
-                        <FiEdit className="w-4 h-4" />
-                      </button>
-                      <Popconfirm
-                        title="Are you sure you want to delete this lead?"
-                        okText="Yes"
-                        cancelText="No"
-                        okType="danger"
-                        onConfirm={() => deleteLead(lead.id)}
-                      >
+                    {role !== 'employee' && (
+                      <div className="flex space-x-2">
                         <button
+                          onClick={() => handleEditClick(lead)}
                           disabled={loading}
-                          className="text-red-600 hover:text-red-800 disabled:opacity-50"
-                          title="Delete"
+                          className="text-blue-600 hover:text-blue-800 disabled:opacity-50"
+                          title="Edit"
                         >
-                          <FiTrash2 className="w-4 h-4" />
+                          <FiEdit className="w-4 h-4" />
                         </button>
-                      </Popconfirm>
-
-                    </div>
+                        <Popconfirm
+                          title="Are you sure you want to delete this lead?"
+                          okText="Yes"
+                          cancelText="No"
+                          okType="danger"
+                          onConfirm={() => deleteLead(lead.id)}
+                        >
+                          <button
+                            disabled={loading}
+                            className="text-red-600 hover:text-red-800 disabled:opacity-50"
+                            title="Delete"
+                          >
+                            <FiTrash2 className="w-4 h-4" />
+                          </button>
+                        </Popconfirm>
+                      </div>
+                    )}
                   </div>
 
                   {editingLead === lead.id && (
@@ -641,24 +652,28 @@ const LeadsTable = () => {
                           {lead.priority || "N/A"}
                         </span>
 
-                        <div className="relative">
-                          <select
-                            value={lead.status || "New"}
-                            onChange={(e) => updateStatus(lead.id, e.target.value)}
-                            disabled={loading}
-                            className={`block w-full pl-3 pr-8 py-1.5 text-xs border rounded-md focus:outline-none focus:ring-2 appearance-none ${lead.status === "New"
-                              ? "border-blue-200 bg-blue-50 text-blue-800"
-                              : lead.status === "In Progress"
-                                ? "border-yellow-200 bg-yellow-50 text-yellow-800"
-                                : "border-green-200 bg-green-50 text-green-800"
-                              }`}
-                          >
-                            <option value="New">New</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Closed">Closed</option>
-                          </select>
-                          <FiChevronDown className="absolute right-2 top-2 text-gray-400 text-xs pointer-events-none" />
-                        </div>
+                        {role === 'employee' ? (
+                          <span className="text-xs text-gray-600">{lead.status || 'New'}</span>
+                        ) : (
+                          <div className="relative">
+                            <select
+                              value={lead.status || "New"}
+                              onChange={(e) => updateStatus(lead.id, e.target.value)}
+                              disabled={loading}
+                              className={`block w-full pl-3 pr-8 py-1.5 text-xs border rounded-md focus:outline-none focus:ring-2 appearance-none ${lead.status === "New"
+                                ? "border-blue-200 bg-blue-50 text-blue-800"
+                                : lead.status === "In Progress"
+                                  ? "border-yellow-200 bg-yellow-50 text-yellow-800"
+                                  : "border-green-200 bg-green-50 text-green-800"
+                                }`}
+                            >
+                              <option value="New">New</option>
+                              <option value="In Progress">In Progress</option>
+                              <option value="Closed">Closed</option>
+                            </select>
+                            <FiChevronDown className="absolute right-2 top-2 text-gray-400 text-xs pointer-events-none" />
+                          </div>
+                        )}
                       </div>
 
                       <div className="text-xs text-gray-500 mt-2">
@@ -693,7 +708,9 @@ const LeadsTable = () => {
                   <th className="px-12 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Priority</th>
                   <th className="px-12 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-40">Status</th>
                   <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Due Date</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Actions</th>
+                  {role !== 'employee' && (
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Actions</th>
+                  )}
                 </tr>
               </thead>
 
@@ -762,24 +779,28 @@ const LeadsTable = () => {
 
                       {/* Status dropdown */}
                       <td className="px-4 py-4 whitespace-nowrap text-center">
-                        <div className="relative">
-                          <select
-                            value={lead.status || "New"}
-                            onChange={(e) => updateStatus(lead.id, e.target.value)}
-                            disabled={loading}
-                            className={`block w-full pl-3 pr-8 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 appearance-none ${lead.status === "New"
-                              ? "border-blue-200 bg-blue-50 text-blue-800"
-                              : lead.status === "In Progress"
-                                ? "border-yellow-200 bg-yellow-50 text-yellow-800"
-                                : "border-green-200 bg-green-50 text-green-800"
-                              }`}
-                          >
-                            <option value="New">New</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Closed">Closed</option>
-                          </select>
-                          <FiChevronDown className="absolute right-2 top-2.5 text-gray-400 text-xs pointer-events-none" />
-                        </div>
+                        {role === 'employee' ? (
+                          <span className="text-sm text-gray-700">{lead.status || 'New'}</span>
+                        ) : (
+                          <div className="relative">
+                            <select
+                              value={lead.status || "New"}
+                              onChange={(e) => updateStatus(lead.id, e.target.value)}
+                              disabled={loading}
+                              className={`block w-full pl-3 pr-8 py-1.5 text-sm border rounded-md focus:outline-none focus:ring-2 appearance-none ${lead.status === "New"
+                                ? "border-blue-200 bg-blue-50 text-blue-800"
+                                : lead.status === "In Progress"
+                                  ? "border-yellow-200 bg-yellow-50 text-yellow-800"
+                                  : "border-green-200 bg-green-50 text-green-800"
+                                }`}
+                            >
+                              <option value="New">New</option>
+                              <option value="In Progress">In Progress</option>
+                              <option value="Closed">Closed</option>
+                            </select>
+                            <FiChevronDown className="absolute right-2 top-2.5 text-gray-400 text-xs pointer-events-none" />
+                          </div>
+                        )}
                       </td>
 
                       {/* Due Date */}
@@ -794,34 +815,36 @@ const LeadsTable = () => {
                       </td>
 
                       {/* Actions */}
-                      <td className="px-4 py-4 whitespace-nowrap text-center text-sm font-medium">
-                        <div className="flex items-center gap-3">
-                          <button
-                            onClick={() => handleEditClick(lead)} // opens modal
-                            disabled={loading}
-                            className="text-blue-600 hover:text-blue-800 disabled:opacity-50"
-                            title="Edit"
-                          >
-                            <FiEdit className="w-4 h-4" />
-                          </button>
-                          <Popconfirm
-                            title="Are you sure you want to delete this lead?"
-                            okText="Yes"
-                            cancelText="No"
-                            okType="danger"
-                            onConfirm={() => deleteLead(lead.id)}
-                          >
+                      {role !== 'employee' && (
+                        <td className="px-4 py-4 whitespace-nowrap text-center text-sm font-medium">
+                          <div className="flex items-center gap-3">
                             <button
+                              onClick={() => handleEditClick(lead)} // opens modal
                               disabled={loading}
-                              className="text-red-600 hover:text-red-800 disabled:opacity-50"
-                              title="Delete"
+                              className="text-blue-600 hover:text-blue-800 disabled:opacity-50"
+                              title="Edit"
                             >
-                              <FiTrash2 className="w-4 h-4" />
+                              <FiEdit className="w-4 h-4" />
                             </button>
-                          </Popconfirm>
+                            <Popconfirm
+                              title="Are you sure you want to delete this lead?"
+                              okText="Yes"
+                              cancelText="No"
+                              okType="danger"
+                              onConfirm={() => deleteLead(lead.id)}
+                            >
+                              <button
+                                disabled={loading}
+                                className="text-red-600 hover:text-red-800 disabled:opacity-50"
+                                title="Delete"
+                              >
+                                <FiTrash2 className="w-4 h-4" />
+                              </button>
+                            </Popconfirm>
 
-                        </div>
-                      </td>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))
                 )}

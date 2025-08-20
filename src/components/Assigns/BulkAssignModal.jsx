@@ -4,7 +4,7 @@ import api from '../../utils/axiosInstance';
 
 const { Option } = Select;
 
-const BulkAssignModal = ({ visible, onClose }) => {
+const BulkAssignModal = ({ visible, onClose, role }) => {
   const [users, setUsers] = useState([]);
   const [leads, setLeads] = useState([]);
   const [selectedUserIds, setSelectedUserIds] = useState([]);
@@ -29,9 +29,26 @@ const BulkAssignModal = ({ visible, onClose }) => {
     fetchUsersAndLeads();
   }, []);
 
+  useEffect(() => {
+    // Pre-select based on first selected lead if all selected share same assignees
+    if (visible && leads.length && selectedLeadIds.length === 1) {
+      const lead = leads.find(l => l.id === selectedLeadIds[0]);
+      if (lead?.assignees?.length) setSelectedUserIds(lead.assignees.map(u => u.id));
+    }
+  }, [visible, selectedLeadIds, leads]);
+
   const handleBulkAssign = async () => {
     try {
       setLoading(true);
+      if (role === 'admin') {
+        Modal.info({
+          title: 'Reassignment Request',
+          content: 'Admins cannot bulk reassign. Ask a super admin to perform bulk assignment.',
+        });
+        setLoading(false);
+        return;
+      }
+
       await api.post('/assigns/bulk-assign', {
         leadIds: selectedLeadIds,
         assigneeIds: selectedUserIds

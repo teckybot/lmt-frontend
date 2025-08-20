@@ -4,7 +4,7 @@ import api from '../../utils/axiosInstance';
 
 const { Option } = Select;
 
-const AssignModal = ({ visible, lead, onClose }) => {
+const AssignModal = ({ visible, lead, onClose, role }) => {
   const [users, setUsers] = useState([]);
   const [selectedUserIds, setSelectedUserIds] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -23,6 +23,14 @@ const AssignModal = ({ visible, lead, onClose }) => {
     fetchUsers();
   }, []);
 
+  useEffect(() => {
+    if (lead?.assignees?.length) {
+      setSelectedUserIds(lead.assignees.map(u => u.id));
+    } else {
+      setSelectedUserIds([]);
+    }
+  }, [lead]);
+
   const handleAssign = async () => {
     try {
       setLoading(true);
@@ -30,8 +38,22 @@ const AssignModal = ({ visible, lead, onClose }) => {
       message.success('Lead assigned successfully');
       onClose();
     } catch (err) {
-      console.error(err);
-      message.error('Failed to assign lead');
+      if (role === 'admin' && err.response?.status === 403) {
+        Modal.confirm({
+          title: 'Request Reassignment',
+          content: 'This lead is already assigned by a super admin. Send a reassignment request?',
+          okText: 'Send',
+          cancelText: 'Cancel',
+          async onOk() {
+            await api.post(`/assigns/${lead.id}/reassign-request`);
+            message.success('Request sent to super admins');
+            onClose();
+          }
+        });
+      } else {
+        console.error(err);
+        message.error('Failed to assign lead');
+      }
     } finally {
       setLoading(false);
     }

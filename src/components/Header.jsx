@@ -78,6 +78,7 @@ const Header = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -86,6 +87,8 @@ const Header = () => {
         const userData = userRes.data;
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
+        const notiRes = await api.get('/users/notifications');
+        setNotifications(notiRes.data || []);
       } catch (err) {
         console.error('Error fetching user data for header:', err);
         message.error("Failed to fetch user data.");
@@ -177,24 +180,55 @@ const Header = () => {
                 {/* <FiX className="cursor-pointer text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" /> */}
               </div>
 
-              <Menu.Item key="n1" className="px-4 py-3 text-sm text-gray-700 dark:!text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
-                📢 New lead assigned to you
-                <div className="text-xs text-gray-400">2 min ago</div>
-              </Menu.Item>
+              {Array.isArray(notifications) && notifications.length > 0
+                ? notifications.map((n) => (
+                  <Menu.Item
+                    key={n.id}
+                    className="px-4 py-3 text-sm text-gray-700 dark:!text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="font-medium">{n.message}</div>
+                        {n.createdAt && (
+                          <div className="text-xs text-gray-400">{new Date(n.createdAt).toLocaleString()}</div>
+                        )}
+                      </div>
+                      {n.type === 'REASSIGN_REQUEST' && user?.role?.toLowerCase() === 'super admin' && (
+                        <div className="flex gap-2">
+                          <button
+                            className="px-2 py-1 text-xs bg-green-600 text-white rounded"
+                            onClick={async (e) => { e.stopPropagation(); await api.post('/users/notifications/handle-reassign', { notificationId: n.id, action: 'ACCEPT' }); message.success('Accepted'); const r = await api.get('/users/notifications'); setNotifications(r.data || []); }}
+                          >
+                            Accept
+                          </button>
+                          <button
+                            className="px-2 py-1 text-xs bg-red-600 text-white rounded"
+                            onClick={async (e) => { e.stopPropagation(); await api.post('/users/notifications/handle-reassign', { notificationId: n.id, action: 'REJECT' }); message.success('Accepted'); const r = await api.get('/users/notifications'); setNotifications(r.data || []); }}
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </Menu.Item>
+                ))
+                : (
+                  <Menu.Item
+                    key="empty"
+                    className="px-4 py-3 text-sm text-gray-700 dark:!text-gray-200"
+                  >
+                    No notifications
+                  </Menu.Item>
+                )
+              }
 
-              <Menu.Item key="n2" className="px-4 py-3 text-sm text-gray-700 dark:!text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
-                ✅ Task "Follow up client" marked complete
-                <div className="text-xs text-gray-400">1 hr ago</div>
-              </Menu.Item>
-
-              <Menu.Item key="n3" className="px-4 py-3 text-sm text-gray-700 dark:!text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
-                💡 Don’t forget tomorrow’s team meeting
-                <div className="text-xs text-gray-400">3 hrs ago</div>
-              </Menu.Item>
 
               <div className="px-4 py-2 text-center border-t border-gray-100 dark:border-gray-700">
-                <button className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
-                  View all
+                <button
+                  className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                  onClick={async () => { await api.post('/users/notifications/read'); const r = await api.get('/users/notifications'); setNotifications(r.data || []); }}
+                >
+                  Mark as read
                 </button>
               </div>
             </Menu>
@@ -202,9 +236,11 @@ const Header = () => {
         >
           <button className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
             <FiBell className="text-xl text-gray-600 dark:text-gray-300" />
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-              3
-            </span>
+            {notifications.filter(n => !n.read).length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                {Math.min(9, notifications.filter(n => !n.read).length)}
+              </span>
+            )}
           </button>
         </Dropdown>
 
