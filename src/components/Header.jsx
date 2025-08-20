@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FiUser, FiSearch, FiBell, FiMessageSquare, FiSettings, FiX } from "react-icons/fi";
+import { FiUser, FiSearch, FiBell, FiSettings, FiX } from "react-icons/fi";
 import api from '../utils/axiosInstance'; 
 
 const Header = () => {
@@ -107,10 +107,6 @@ const Header = () => {
             <FiSearch className="text-xl text-gray-600 dark:text-gray-300" />
           </button>
           
-          <button className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-            <FiMessageSquare className="text-xl text-gray-600 dark:text-gray-300" />
-          </button>
-          
           <button 
             className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             onClick={() => setShowNotifications(!showNotifications)}
@@ -124,7 +120,7 @@ const Header = () => {
 
         <div className="flex items-center space-x-3">
           <span className="font-medium text-sm text-gray-600 dark:text-gray-300">
-            {user?.firstName || user?.username || "GUEST"}
+            {user?.role ? user.role.toUpperCase() : "GUEST"}
           </span>
 
           <div className="relative">
