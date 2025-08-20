@@ -6,7 +6,7 @@ const Profile = () => {
   const [user, setUser] = useState(null);
   const [activity, setActivity] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -86,29 +86,35 @@ const Profile = () => {
     }
 
     try {
-    const fd = new FormData();
-    fd.append("name", formData.name);
-    fd.append("email", formData.email);
-    if (formData.avatar instanceof File) {
-      fd.append("avatar", formData.avatar);
-    }
+      const fd = new FormData();
+      fd.append("name", formData.name);
+      fd.append("email", formData.email);
+      fd.append("phone", formData.phone);
 
-    const res = await api.put('/users/profile', fd, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+      if (formData.avatar instanceof File) {
+        fd.append("avatar", formData.avatar);
+      }
 
-    const updatedUser = res.data.user;
-    setUser(updatedUser);
-    localStorage.setItem('user', JSON.stringify(updatedUser));
-    setIsEditing(false);
-    setProfileError(null);
+      const res = await api.put('/users/profile', fd, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      const updatedUser = res.data.user;
+      setUser(updatedUser);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      setIsEditing(false);
+      setProfileError(null);
     } catch (err) {
-      console.error('Error updating profile:', err.response?.status, err.response?.data, err.message);
-      setProfileError(err.response?.data?.message || 'Failed to update profile.');
+      console.error(
+        "Error updating profile:",
+        err.response?.status,
+        err.response?.data,
+        err.message
+      );
+      setProfileError(err.response?.data?.message || "Failed to update profile.");
     }
   };
+
 
   if (profileError && activityError) {
     return (
@@ -142,8 +148,19 @@ const Profile = () => {
   }
 
   return (
-    <div className="bg-white shadow rounded-lg p-6  mt-16 md:mt-0">
-      <h2 className="text-xl font-semibold text-gray-800 mb-6">My Profile</h2>
+    <div className="bg-white shadow rounded-lg p-6 mt-16 md:mt-0">
+  <div className="flex justify-between items-center mb-6">
+    <h2 className="text-xl font-semibold text-gray-800">My Profile</h2>
+
+    {!isEditing && (
+      <button
+        onClick={() => setIsEditing(true)}
+        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+      >
+        Edit Profile
+      </button>
+    )}
+  </div>
 
       {profileError && (
         <p className="text-red-500 mb-4">Profile Error: {profileError}</p>
@@ -161,21 +178,6 @@ const Profile = () => {
               <h3 className="text-lg font-medium text-gray-900">{user.name}</h3>
               <p className="text-gray-500">{user.role || 'User'}</p>
 
-              {isEditing ? (
-                <button
-                  onClick={handleSubmit}
-                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
-                  Save Changes
-                </button>
-              ) : (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
-                  Edit Profile
-                </button>
-              )}
             </div>
 
             <div className="mt-6">
