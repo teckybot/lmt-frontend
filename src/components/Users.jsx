@@ -147,12 +147,13 @@ const UserManagement = () => {
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Manage Users</h2>
         <div className="flex justify-center flex-1">
-          <Search
+          <input
+            type="text"
             placeholder="Search by name, email, phone or role"
-            allowClear
-            value={searchTerm}
+            value={searchTerm}  
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ maxWidth: 400, width: "100%" }}
+            className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                  placeholder-gray-400 transition duration-200 "
           />
 
         </div>
