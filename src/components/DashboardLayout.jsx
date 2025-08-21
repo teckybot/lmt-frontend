@@ -2,8 +2,9 @@
 import React, { useState } from "react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+import { FiLoader } from "react-icons/fi"; // Import the loader icon
 
-const DashboardLayout = ({ children, activeTab, setActiveTab }) => {
+const DashboardLayout = ({ children, activeTab, setActiveTab, isLoading = false }) => {
   const [darkMode, setDarkMode] = useState(false);
 
   return (
@@ -22,7 +23,18 @@ const DashboardLayout = ({ children, activeTab, setActiveTab }) => {
         <Header darkMode={darkMode} setDarkMode={setDarkMode} />
 
         {/* Main content */}
-        <main className="flex-1 p-6 overflow-auto">{children}</main>
+        <main className="flex-1 p-6 overflow-auto">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="flex flex-col items-center">
+                <FiLoader className="animate-spin text-3xl text-blue-500 mb-2" />
+                <p className="text-gray-600">Loading pls wait...</p>
+              </div>
+            </div>
+          ) : (
+            children
+          )}
+        </main>
       </div>
     </div>
   );

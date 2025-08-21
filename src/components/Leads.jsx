@@ -5,7 +5,7 @@ import { Modal, Form, Input, Select, DatePicker, Button, Popconfirm, Pagination 
 import dayjs from "dayjs";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-
+import { FiLoader } from "react-icons/fi";
 import api from "../utils/axiosInstance";
 
 
@@ -44,7 +44,7 @@ const LeadsTable = () => {
       try {
         const parsed = JSON.parse(storedUser);
         setRole((parsed.role || '').toLowerCase());
-      } catch {}
+      } catch { }
     }
     fetchLeads();
   }, []);
@@ -463,7 +463,16 @@ const LeadsTable = () => {
           {/* Mobile View */}
           <div className="md:hidden space-y-3">
             {loading ? (
-              <div className="text-center py-8 text-gray-500">Loading leads...</div>
+              <tr>
+                <td colSpan={role !== 'employee' ? 9 : 8} className="px-6 py-8 text-center">
+                  <div className="flex items-center justify-center h-64">
+                    <div className="flex flex-col items-center">
+                      <FiLoader className="animate-spin text-3xl text-blue-500 mb-2" />
+                      <p className="text-gray-600">Loading analytics data...</p>
+                    </div>
+                  </div>
+                </td>
+              </tr>
             ) : paginatedLeads.length === 0 ? (
               <div className="text-center py-8 text-gray-500">No leads found matching the current filters.</div>
             ) : (
@@ -718,13 +727,18 @@ const LeadsTable = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {loading ? (
                   <tr>
-                    <td colSpan="9" className="px-6 py-8 text-center text-gray-500">
-                      Loading leads...
+                    <td colSpan={role !== 'employee' ? 9 : 8} className="px-6 py-8 text-center">
+                      <div className="flex items-center justify-center h-64">
+                        <div className="flex flex-col items-center">
+                          <FiLoader className="animate-spin text-3xl text-blue-500 mb-2" />
+                          <p className="text-gray-600">Loading analytics data...</p>
+                        </div>
+                      </div>
                     </td>
                   </tr>
                 ) : paginatedLeads.length === 0 ? (
                   <tr>
-                    <td colSpan="9" className="px-6 py-8 text-center text-gray-500">
+                    <td colSpan={role !== 'employee' ? 9 : 8} className="px-6 py-8 text-center text-gray-500">
                       No leads found matching the current filters.
                     </td>
                   </tr>
@@ -819,7 +833,7 @@ const LeadsTable = () => {
                         <td className="px-4 py-4 whitespace-nowrap text-center text-sm font-medium">
                           <div className="flex items-center gap-3">
                             <button
-                              onClick={() => handleEditClick(lead)} // opens modal
+                              onClick={() => handleEditClick(lead)}
                               disabled={loading}
                               className="text-blue-600 hover:text-blue-800 disabled:opacity-50"
                               title="Edit"
@@ -841,7 +855,6 @@ const LeadsTable = () => {
                                 <FiTrash2 className="w-4 h-4" />
                               </button>
                             </Popconfirm>
-
                           </div>
                         </td>
                       )}

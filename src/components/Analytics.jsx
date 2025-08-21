@@ -53,12 +53,12 @@ const Analytics = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="flex flex-col items-center">
-          <FiLoader className="animate-spin text-3xl text-blue-500 mb-2" />
-          <p className="text-gray-600">Loading analytics data...</p>
-        </div>
-      </div>
+     <div className="flex items-center justify-center h-64">
+  <div className="flex flex-col items-center">
+    <FiLoader className="animate-spin text-3xl text-blue-500 mb-2" />
+    <p className="text-gray-600">Loading analytics data...</p>
+  </div>
+</div>
     );
   }
 

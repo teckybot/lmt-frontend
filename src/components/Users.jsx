@@ -3,7 +3,7 @@ import { Table, Button, Modal, Form, Input, Select, message, Popconfirm } from "
 import { FiUser, FiMail, FiLock, FiPhone, FiUserCheck, FiUserPlus, FiEdit, FiTrash2, FiSearch } from "react-icons/fi";
 import api from "../utils/axiosInstance";
 import Teckybot from "../Data/Teckybot.png";
-
+import { FiLoader } from "react-icons/fi";
 const { Option } = Select;
 
 const UserManagement = () => {
@@ -199,10 +199,10 @@ const UserManagement = () => {
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center py-16">
-          <div className="modern-loader">
-            <div className="loader-circle"></div>
-            <div className="loader-text">Loading users...</div>
+        <div className="flex items-center justify-center h-64">
+          <div className="flex flex-col items-center">
+            <FiLoader className="animate-spin text-3xl text-blue-500 mb-2" />
+            <p className="text-gray-600">Loading analytics data...</p>
           </div>
         </div>
       ) : (
@@ -240,7 +240,7 @@ const UserManagement = () => {
         onOk={() => form.submit()}
         okText={editingUser ? "Update" : "Create"}
         okButtonProps={{
-          className: "bg-gray-900 border-gray-900 hover:bg-gray-900 hover:border-gray-900 focus:bg-gray-900 focus:border-gray-900"
+          className: "bg-gray-900  hover:bg-gray-900  focus:bg-gray-900 "
         }}
         cancelButtonProps={{ className: "" }}
         width={400}
@@ -310,60 +310,6 @@ const UserManagement = () => {
           </Form.Item>
         </Form>
       </Modal>
-
-      <style jsx>{`
-        .modern-loader {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-        }
-        
-        .loader-circle {
-          width: 50px;
-          height: 50px;
-          border-radius: 50%;
-          background: conic-gradient(#0000 10%, #111827);
-          -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 8px), #000 0);
-          mask: radial-gradient(farthest-side, #0000 calc(100% - 8px), #000 0);
-          animation: spin 1.2s linear infinite;
-        }
-        
-        .loader-text {
-          margin-top: 12px;
-          font-size: 14px;
-          color: #6b7280;
-          font-weight: 500;
-        }
-        
-        @keyframes spin {
-          to {
-            transform: rotate(1turn);
-          }
-        }
-        
-        @media (max-width: 768px) {
-          :global(.ant-table-thead > tr > th),
-          :global(.ant-table-tbody > tr > td) {
-            padding: 8px;
-          }
-          
-          :global(.ant-table-content) {
-            font-size: 14px;
-          }
-        }
-        
-        @media (max-width: 480px) {
-          :global(.ant-table-thead > tr > th),
-          :global(.ant-table-tbody > tr > td) {
-            padding: 6px;
-          }
-          
-          :global(.ant-table-content) {
-            font-size: 13px;
-          }
-        }
-      `}</style>
     </div>
   );
 };

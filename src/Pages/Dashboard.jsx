@@ -68,15 +68,19 @@ const Dashboard = () => {
   };
 
   const renderContent = () => {
-    if (isLoading && activeTab !== "CreateLead") {
+    // Show loading animation only for tabs that need data fetching
+    if (isLoading && ["dashboard", "leads", "assigns"].includes(activeTab)) {
       return (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="flex items-center justify-center h-64">
+          <div className="flex flex-col items-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-2"></div>
+            <p className="text-gray-600">Loading analytics data...</p>
+          </div>
         </div>
       );
     }
 
-    if (error && activeTab !== "CreateLead") {
+    if (error && ["dashboard", "leads", "assigns"].includes(activeTab)) {
       return (
         <div className="bg-red-50 border-l-4 border-red-500 p-4 my-4">
           <div className="flex items-center">
@@ -107,7 +111,7 @@ const Dashboard = () => {
         return <Profile />;
       case "assigns":
         return <LeadTable role={userRole} />;
-        case "Users":
+      case "Users":
         return <UserManagement />;
       default:
         return <Analytics stats={stats} isLoading={isLoading} />;
@@ -115,7 +119,11 @@ const Dashboard = () => {
   };
 
   return (
-    <DashboardLayout activeTab={activeTab} setActiveTab={setActiveTab}>
+    <DashboardLayout 
+      activeTab={activeTab} 
+      setActiveTab={setActiveTab}
+      isLoading={isLoading && ["dashboard", "leads", "assigns"].includes(activeTab)}
+    >
       {renderContent()}
     </DashboardLayout>
   );
