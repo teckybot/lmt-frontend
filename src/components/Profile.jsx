@@ -416,12 +416,18 @@ const Profile = () => {
                               <span className="text-sm font-medium text-gray-800 bg-white px-2 py-1 rounded">
                                 {item.action}
                               </span>
-                              <span className="text-xs text-gray-500">
-                                {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}
-                              </span>
+                              <div className="flex flex-col items-end text-xs text-gray-500">
+                                <span className='text-sm'>{item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}</span>
+                                <span className="text-gray-400 mt-1">
+                                  {item.createdAt ? new Date(item.createdAt).toLocaleTimeString() : 'N/A'}
+                                </span>
+                              </div>
                             </div>
                             <p className="text-sm text-gray-700 font-medium mb-1">{item.leadTitle || '-'}</p>
                             <p className="text-xs text-gray-600 truncate">{item.details || 'No details available'}</p>
+                            <div className="flex justify-end text-sm text-gray-500 mt-1">
+                              <span className="text-gray-400">{item.username || 'N/A'}</span>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -528,12 +534,19 @@ const Profile = () => {
                               <span className="text-sm font-medium text-gray-800 bg-white px-2 py-1 rounded">
                                 {item.action}
                               </span>
-                              <span className="text-xs text-gray-500">
-                                {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}
-                              </span>
+                              <div className="flex flex-col items-end text-xs text-gray-500">
+                                <span className='text-sm'>{item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A'}</span>
+                                <span className="text-gray-400 mt-1">
+                                  {item.createdAt ? new Date(item.createdAt).toLocaleTimeString() : 'N/A'}
+                                </span>
+                              </div>
                             </div>
                             <p className="text-sm text-gray-700 font-medium mb-1">{item.leadTitle || '-'}</p>
                             <p className="text-xs text-gray-600 truncate">{item.details || 'No details available'}</p>
+                            <div className="flex justify-end text-xs text-gray-500 mt-2">
+                              <span className="text-gray-400">{item.username || 'N/A'}</span>
+                            </div>
+
                           </div>
                         ))}
                       </div>
