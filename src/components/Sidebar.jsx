@@ -67,7 +67,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
     { id: "leads", label: "Leads", icon: <FiUsers className="text-lg" /> },
     { id: "CreateLead", label: "Create Lead", icon: <FiPlusCircle className="text-lg" /> },
     { id: "profile", label: "Profile", icon: <FiUser className="text-lg" /> },
-    { id: "assigns", label: "Assigns", icon: <FiUsers className="text-lg" /> },
+    // { id: "assigns", label: "Assigns", icon: <FiUsers className="text-lg" /> },
     { id: "Users", label: "Users", icon: <FiUserPlus className="text-lg" />, role: "super admin" }
   ];
 
