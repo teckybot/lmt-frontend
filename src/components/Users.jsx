@@ -155,7 +155,11 @@ const UserManagement = () => {
     <div className="p-4 bg-white rounded-xl shadow-md lg:mt-5 mt-28">
       <div className="flex flex-col gap-4 mb-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold">Manage Users</h1>
+          <div>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">User Management</h1>
+          <p className="text-sm text-gray-500 -mt-3">
+            Manage Add, update, or remove users, user roles, and contact information.</p>
+          </div>
           <Button
             type="primary"
             icon={<FiUserPlus className="text-base" />}

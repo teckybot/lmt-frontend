@@ -320,10 +320,10 @@ const LeadsTable = () => {
   };
 
   const PaginationControls = () => (
-    <div className="flex flex-col md:flex-row items-center justify-between mt-4 gap-3">
+    <div className="flex flex-wrap items-center justify-between mb-4 mt-4 gap-3">
       {/* Rows per page (Antd Select) */}
       <div className="flex items-center space-x-2 text-sm text-gray-600">
-        <span>Rows per page:</span>
+        <span className="md:ml-8">Rows per page:</span>
         <Select
           value={rowsPerPage}
           onChange={(value) => {
@@ -336,15 +336,19 @@ const LeadsTable = () => {
       </div>
 
       {/* Ant Design Pagination */}
-      <Pagination
-        current={currentPage}
-        total={filteredLeads.length}
-        pageSize={rowsPerPage}
-        onChange={(page) => setCurrentPage(page)}
-        showSizeChanger={false}
-        responsive
-      />
+      <div className="flex justify-end flex-1">
+        <Pagination
+          current={currentPage}
+          total={filteredLeads.length}
+          pageSize={rowsPerPage}
+          onChange={(page) => setCurrentPage(page)}
+          showSizeChanger={false}
+          responsive
+        />
+      </div>
     </div>
+
+
   );
 
   return (
@@ -377,7 +381,21 @@ const LeadsTable = () => {
                 type="primary"
                 icon={<FiDownload className="mr-1" />}
                 onClick={exportToExcel}
-                className="whitespace-nowrap w-full md:w-auto"
+                className="bg-gradient-to-r from-gray-800 to-gray-900 
+                border-0 
+                hover:from-gray-900 hover:to-gray-800 
+                focus:from-gray-900 focus:to-gray-800 
+                active:from-gray-950 active:to-gray-900 
+                shadow-md hover:shadow-lg 
+                transition-all duration-200 
+                flex items-center justify-center 
+                rounded-lg 
+                px-4 py-2 
+                h-auto
+                font-medium
+                text-white
+              "
+            size="middle"
               >
                 Download Excel
               </Button>

@@ -123,8 +123,8 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
         </div>
 
         {/* Theme Toggle */}
-        <div className="flex items-center justify-between px-4 py-2 mb-2">
-          <span className="text-sm ml-6 font-medium">Mode</span>
+        <div className="flex items-center justify-between px-4 py-2 md:mt-3 mt-8 mb-2">
+          <span className="text-sm ml-6 font-medium ">Mode</span>
           <button
             onClick={toggleTheme}
             className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"

@@ -353,14 +353,29 @@ const CreateLead = () => {
               type="button"
               onClick={() => navigate("/dashboard")}
               disabled={isSubmitting}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+              className="px-4 py-2 border border-gray-300 rounded-lg text-black hover:text-white hover:bg-red-700 transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
-              type="submit"
+              type="primary"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50"
+              className="bg-gradient-to-r from-gray-800 to-gray-900 
+                border-0 
+                hover:from-blue-800 hover:to-blue-800 
+                focus:from-gray-900 focus:to-gray-800 
+                active:from-blue-800 active:to-blue-900 
+                
+                shadow-md hover:shadow-lg 
+                transition-all duration-200 
+                flex items-center justify-center 
+                rounded-lg 
+                px-4 py-2 
+                h-auto
+                font-medium
+                text-white
+              "
+            size="middle"
             >
               {isSubmitting ? "Creating..." : "Create Lead"}
             </button>
