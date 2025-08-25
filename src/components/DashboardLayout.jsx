@@ -1,8 +1,9 @@
 // src/components/DashboardLayout.jsx
+
 import React, { useState } from "react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
-import { FiLoader } from "react-icons/fi"; // Import the loader icon
+import { FiLoader } from "react-icons/fi"; // Loader icon
 
 const DashboardLayout = ({ children, activeTab, setActiveTab, isLoading = false }) => {
   const [darkMode, setDarkMode] = useState(false);
@@ -19,8 +20,12 @@ const DashboardLayout = ({ children, activeTab, setActiveTab, isLoading = false 
 
       {/* Right section */}
       <div className="flex-1 flex flex-col">
-        {/* Header (hidden on mobile) */}
-        <Header darkMode={darkMode} setDarkMode={setDarkMode} />
+        {/* Header */}
+        <Header
+          darkMode={darkMode}
+          setDarkMode={setDarkMode}
+          setActiveTab={setActiveTab} // 🔥 Pass this so "Profile" can trigger tab change
+        />
 
         {/* Main content */}
         <main className="flex-1 p-6 overflow-auto">
@@ -28,7 +33,7 @@ const DashboardLayout = ({ children, activeTab, setActiveTab, isLoading = false 
             <div className="flex items-center justify-center h-64">
               <div className="flex flex-col items-center">
                 <FiLoader className="animate-spin text-3xl text-blue-500 mb-2" />
-                <p className="text-gray-600">Loading pls wait...</p>
+                <p className="text-gray-600">Loading, please wait...</p>
               </div>
             </div>
           ) : (

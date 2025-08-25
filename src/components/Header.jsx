@@ -1,15 +1,19 @@
-
 import React, { useEffect, useState } from "react";
 import { FiUser, FiSearch, FiBell, FiSettings, FiX, FiLogOut } from "react-icons/fi";
 import { Dropdown, Menu, message } from "antd";
 import api from '../utils/axiosInstance';
 
-
-const ProfileDropdownMenu = ({ user, handleLogout }) => {
+// Profile dropdown menu
+const ProfileDropdownMenu = ({ user, handleLogout, setActiveTab }) => {
   const menu = (
     <Menu className="w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 border border-gray-200 dark:border-gray-700">
-      <Menu.Item key="user-info" className="px-4 py-2 border-b border-gray-100 dark:border-gray-700 pointer-events-none">
-        <p className="text-sm font-medium text-gray-900 dark:text-white">{user.firstName} {user.lastName}</p>
+      <Menu.Item
+        key="user-info"
+        className="px-4 py-2 border-b border-gray-100 dark:border-gray-700 pointer-events-none"
+      >
+        <p className="text-sm font-medium text-gray-900 dark:text-white">
+          {user.firstName} {user.lastName}
+        </p>
         <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
         <div className="flex items-center mt-1">
           <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
@@ -24,8 +28,10 @@ const ProfileDropdownMenu = ({ user, handleLogout }) => {
           </span>
         </div>
       </Menu.Item>
+
       <Menu.Item
         key="profile"
+        onClick={() => setActiveTab("profile")}
         className="px-4 py-2 text-sm text-gray-700 dark:!text-white hover:bg-gray-100 dark:hover:bg-gray-700"
       >
         <FiUser className="inline mr-2 text-lg dark:text-white" />
@@ -48,13 +54,12 @@ const ProfileDropdownMenu = ({ user, handleLogout }) => {
         <FiLogOut className="inline mr-2 text-lg dark:text-white" />
         Sign out
       </Menu.Item>
-
     </Menu>
   );
 
   return (
     <Dropdown overlay={menu} trigger={['click']} placement="bottomRight">
-      <div className="cursor-pointer">
+      <div className="cursor-pointer relative">
         {user?.avatar ? (
           <img
             src={user.avatar}
@@ -73,11 +78,10 @@ const ProfileDropdownMenu = ({ user, handleLogout }) => {
 };
 
 // Main Header Component
-const Header = () => {
+const Header = ({ setActiveTab }) => {
   const [user, setUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
@@ -87,6 +91,7 @@ const Header = () => {
         const userData = userRes.data;
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
+
         const notiRes = await api.get('/users/notifications');
         setNotifications(notiRes.data || []);
       } catch (err) {
@@ -97,6 +102,7 @@ const Header = () => {
         setUser(null);
       }
     };
+
     if (localStorage.getItem('token')) {
       fetchUserData();
     } else {
@@ -107,7 +113,7 @@ const Header = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     console.log("Searching for:", searchQuery);
-    // Implement search functionality here
+    // Add search functionality here
   };
 
   const handleLogout = () => {
@@ -118,8 +124,7 @@ const Header = () => {
   };
 
   return (
-    <header
-      className="hidden md:flex items-center justify-center px-6 py-3 h-16 shadow-sm
+    <header className="hidden md:flex items-center justify-center px-6 py-3 h-16 shadow-sm
       bg-white/95 dark:bg-gray-900 backdrop-blur-sm
       text-gray-900 dark:text-gray-100 border-b border-gray-100 dark:border-gray-800
       transition-colors duration-300 relative"
@@ -130,7 +135,7 @@ const Header = () => {
         <span className="absolute -right-4 top-0 text-[0.6rem] text-blue-400 dark:text-blue-300">®</span>
       </div>
 
-      {/* Search Bar - Appears when toggled */}
+      {/* Search Bar */}
       {showSearch && (
         <div className="absolute left-6 top-1/2 transform -translate-y-1/2">
           <form onSubmit={handleSearch} className="flex items-center">
@@ -158,18 +163,17 @@ const Header = () => {
         </div>
       )}
 
-      {/* User Info - Absolute positioned right */}
+      {/* Right side icons */}
       <div className="absolute right-6 flex items-center space-x-4">
-        {/* Action Icons */}
-        <div className="flex items-center space-x-3">
-          <button
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            onClick={() => setShowSearch(!showSearch)}
-          >
-            <FiSearch className="text-xl text-gray-600 dark:text-gray-300" />
-          </button>
-        </div>
+        {/* Search icon */}
+        <button
+          className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          onClick={() => setShowSearch(!showSearch)}
+        >
+          <FiSearch className="text-xl text-gray-600 dark:text-gray-300" />
+        </button>
 
+        {/* Notification bell */}
         <Dropdown
           trigger={["click"]}
           placement="bottomRight"
@@ -177,11 +181,10 @@ const Header = () => {
             <Menu className="w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100 dark:border-gray-700">
                 <span className="font-semibold text-gray-700 dark:text-gray-200">Notifications</span>
-                {/* <FiX className="cursor-pointer text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" /> */}
               </div>
 
-              {Array.isArray(notifications) && notifications.length > 0
-                ? notifications.map((n) => (
+              {Array.isArray(notifications) && notifications.length > 0 ? (
+                notifications.map((n) => (
                   <Menu.Item
                     key={n.id}
                     className="px-4 py-3 text-sm text-gray-700 dark:!text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -190,20 +193,40 @@ const Header = () => {
                       <div>
                         <div className="font-medium">{n.message}</div>
                         {n.createdAt && (
-                          <div className="text-xs text-gray-400">{new Date(n.createdAt).toLocaleString()}</div>
+                          <div className="text-xs text-gray-400">
+                            {new Date(n.createdAt).toLocaleString()}
+                          </div>
                         )}
                       </div>
                       {n.type === 'REASSIGN_REQUEST' && user?.role?.toLowerCase() === 'super admin' && (
                         <div className="flex gap-2">
                           <button
                             className="px-2 py-1 text-xs bg-green-600 text-white rounded"
-                            onClick={async (e) => { e.stopPropagation(); await api.post('/users/notifications/handle-reassign', { notificationId: n.id, action: 'ACCEPT' }); message.success('Accepted'); const r = await api.get('/users/notifications'); setNotifications(r.data || []); }}
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              await api.post('/users/notifications/handle-reassign', {
+                                notificationId: n.id,
+                                action: 'ACCEPT',
+                              });
+                              message.success('Accepted');
+                              const r = await api.get('/users/notifications');
+                              setNotifications(r.data || []);
+                            }}
                           >
                             Accept
                           </button>
                           <button
                             className="px-2 py-1 text-xs bg-red-600 text-white rounded"
-                            onClick={async (e) => { e.stopPropagation(); await api.post('/users/notifications/handle-reassign', { notificationId: n.id, action: 'REJECT' }); message.success('Accepted'); const r = await api.get('/users/notifications'); setNotifications(r.data || []); }}
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              await api.post('/users/notifications/handle-reassign', {
+                                notificationId: n.id,
+                                action: 'REJECT',
+                              });
+                              message.success('Rejected');
+                              const r = await api.get('/users/notifications');
+                              setNotifications(r.data || []);
+                            }}
                           >
                             Reject
                           </button>
@@ -212,21 +235,20 @@ const Header = () => {
                     </div>
                   </Menu.Item>
                 ))
-                : (
-                  <Menu.Item
-                    key="empty"
-                    className="px-4 py-3 text-sm text-gray-700 dark:!text-gray-200"
-                  >
-                    No notifications
-                  </Menu.Item>
-                )
-              }
-
+              ) : (
+                <Menu.Item key="empty" className="px-4 py-3 text-sm text-gray-700 dark:!text-gray-200">
+                  No notifications
+                </Menu.Item>
+              )}
 
               <div className="px-4 py-2 text-center border-t border-gray-100 dark:border-gray-700">
                 <button
                   className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-                  onClick={async () => { await api.post('/users/notifications/read'); const r = await api.get('/users/notifications'); setNotifications(r.data || []); }}
+                  onClick={async () => {
+                    await api.post('/users/notifications/read');
+                    const r = await api.get('/users/notifications');
+                    setNotifications(r.data || []);
+                  }}
                 >
                   Mark as read
                 </button>
@@ -244,13 +266,20 @@ const Header = () => {
           </button>
         </Dropdown>
 
+        {/* Role and avatar */}
         <div className="flex items-center space-x-3">
           <span className="font-medium text-sm text-gray-600 dark:text-gray-300">
             {user?.role ? user.role.toUpperCase() : "GUEST"}
           </span>
 
-          {/* User profile dropdown */}
-          {user && <ProfileDropdownMenu user={user} handleLogout={handleLogout} />}
+          {/* Profile dropdown */}
+          {user && (
+            <ProfileDropdownMenu
+              user={user}
+              handleLogout={handleLogout}
+              setActiveTab={setActiveTab} // 🔥 Pass to Profile menu
+            />
+          )}
         </div>
       </div>
     </header>
