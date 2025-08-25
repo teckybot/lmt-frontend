@@ -75,8 +75,8 @@ const LeadsTable = () => {
 
   const updateStatus = async (leadId, newStatus) => {
     try {
-      if (role === 'employee') return; // employees cannot update
-      setLoading(true);
+      // if (role === 'employee') return; // employees cannot update
+      // setLoading(true);
       await api.patch(`/leads/${leadId}/status`, { status: newStatus });
       setLeads((prevLeads) =>
         prevLeads.map((lead) => (lead.id === leadId ? { ...lead, status: newStatus } : lead))
@@ -105,28 +105,11 @@ const LeadsTable = () => {
   };
 
 
-  // const handleEditClick = (lead) => {
-  //   setEditingLead(lead.id);
-
-  //   form.setFieldsValue({
-  //     title: lead.title || "",
-  //     customerName: lead.customerName || "",
-  //     phone: lead.phone || "",
-  //     email: lead.email || "",
-  //     source: lead.source || "",
-  //     dueDate: lead.dueDate ? dayjs(lead.dueDate) : null,
-  //     priority: lead.priority || "",
-  //     status: lead.status || "",
-  //     notes: lead.notes || "",
-  //   });
-  //   setShowModal(true);
-  // };
-
   const handleEditClick = (lead) => {
     setEditingLead(lead.id);
 
     if (isMobile) {
-      // 👉 Mobile: use inline form (prefill formData)
+      // Mobile: use inline form (prefill formData)
       setFormData({
         title: lead.title || "",
         customerName: lead.customerName || "",
@@ -155,26 +138,6 @@ const LeadsTable = () => {
     }
   };
 
-  // const handleEditSubmit = async (values) => {
-  //   try {
-  //     setLoading(true);
-
-  //     await api.put(`/leads/${editingLead}`, {
-  //       ...values,
-  //       dueDate: values.dueDate ? values.dueDate.format("YYYY-MM-DD") : null,
-  //     });
-
-  //     setShowModal(false);
-  //     setEditingLead(null);
-  //     await fetchLeads();
-  //     toast.success("Lead updated successfully!");
-  //   } catch (err) {
-  //     console.error("Error updating lead", err);
-  //     toast.error("Failed to update lead.");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const handleEditSubmit = async (eOrValues) => {
     try {
@@ -381,7 +344,7 @@ const LeadsTable = () => {
                 type="primary"
                 icon={<FiDownload className="mr-1" />}
                 onClick={exportToExcel}
-                className="bg-gradient-to-r from-gray-800 to-gray-900 
+                className="bg-gradient-to-r from-gray-800 to-gray-700 
                 border-0 
                 hover:from-gray-900 hover:to-gray-800 
                 focus:from-gray-900 focus:to-gray-800 
@@ -679,9 +642,9 @@ const LeadsTable = () => {
                           {lead.priority || "N/A"}
                         </span>
 
-                        {role === 'employee' ? (
+                        {/* {role === 'employee' ? (
                           <span className="text-xs text-gray-600">{lead.status || 'New'}</span>
-                        ) : (
+                        ) : ( */}
                           <div className="relative">
                             <select
                               value={lead.status || "New"}
@@ -700,7 +663,7 @@ const LeadsTable = () => {
                             </select>
                             <FiChevronDown className="absolute right-2 top-2 text-gray-400 text-xs pointer-events-none" />
                           </div>
-                        )}
+                        {/* )} */}
                       </div>
 
                       <div className="text-xs text-gray-500 mt-2">
@@ -811,9 +774,9 @@ const LeadsTable = () => {
 
                       {/* Status dropdown */}
                       <td className="px-4 py-4 whitespace-nowrap text-center">
-                        {role === 'employee' ? (
+                        {/* {role === 'employee' ? (
                           <span className="text-sm text-gray-700">{lead.status || 'New'}</span>
-                        ) : (
+                        ) : ( */}
                           <div className="relative">
                             <select
                               value={lead.status || "New"}
@@ -832,7 +795,7 @@ const LeadsTable = () => {
                             </select>
                             <FiChevronDown className="absolute right-2 top-2.5 text-gray-400 text-xs pointer-events-none" />
                           </div>
-                        )}
+                        {/* )} */}
                       </td>
 
                       {/* Due Date */}
