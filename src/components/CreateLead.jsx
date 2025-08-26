@@ -69,6 +69,8 @@ const CreateLead = () => {
     state: "",
     district: "",
     location: "",
+    // New state for assigning to multiple users
+    assignedTo: [],
   };
 
   const [formData, setFormData] = useState(initialFormState);
@@ -77,6 +79,7 @@ const CreateLead = () => {
   const [districtOptions, setDistrictOptions] = useState([]);
   const [otherServiceInput, setOtherServiceInput] = useState("");
   const [isOtherModalVisible, setIsOtherModalVisible] = useState(false);
+  const [users, setUsers] = useState([]); // New state for storing the list of users
 
   const priorityOptions = [
     { value: "High", label: "High" },
@@ -103,6 +106,20 @@ const CreateLead = () => {
     if (!token) navigate("/");
   }, [navigate]);
 
+  // Fetches users from the new backend endpoint when the component mounts
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await api.get("/users");
+        setUsers(response.data);
+      } catch (error) {
+        console.error("Failed to fetch users:", error);
+        message.error("Failed to load users for assignment.");
+      }
+    };
+    fetchUsers();
+  }, []); // Empty dependency array ensures it runs only once on mount
+
   const handleChange = (name, value) => {
     if (name.startsWith("description.")) {
       const key = name.split(".")[1];
@@ -118,9 +135,9 @@ const CreateLead = () => {
     }
 
     if (name === "state") {
-      const districts = stateDistrictMap[value]?.districts
-        ? Object.keys(stateDistrictMap[value].districts)
-        : [];
+      const districts = stateDistrictMap[value]?.districts ?
+        Object.keys(stateDistrictMap[value].districts) :
+        [];
       setDistrictOptions(districts);
       setFormData((prev) => ({ ...prev, state: value, district: "" }));
       if (errors.state) setErrors({ ...errors, state: null });
@@ -141,9 +158,9 @@ const CreateLead = () => {
       const exists = prev.services.includes(service);
       return {
         ...prev,
-        services: exists
-          ? prev.services.filter((s) => s !== service)
-          : [...prev.services, service],
+        services: exists ?
+          prev.services.filter((s) => s !== service) :
+          [...prev.services, service],
       };
     });
   };
@@ -261,6 +278,7 @@ const CreateLead = () => {
         };
       }
 
+      // Updated payload to include the assignedTo field
       const payload = {
         customerName: formData.customerName,
         phone: formData.phone,
@@ -272,17 +290,21 @@ const CreateLead = () => {
         state: formData.state || null,
         district: formData.district || null,
         location: formData.location || null,
+        assignedTo: formData.assignedTo, // This is the fix!
       };
 
       await api.post("/leads", payload);
 
-      toast.success("Lead created successfully!", { autoClose: 3000 });
+      toast.success("Lead created successfully!", {
+        autoClose: 3000
+      });
       resetForm();
     } catch (err) {
       console.error("Create lead error:", err);
       toast.error(
-        err.response?.data?.error || err.response?.data?.message || "Error creating lead",
-        { autoClose: 4000 }
+        err.response?.data?.error || err.response?.data?.message || "Error creating lead", {
+          autoClose: 4000
+        }
       );
     } finally {
       setIsSubmitting(false);
@@ -377,6 +399,58 @@ const CreateLead = () => {
                 />
               </Form.Item>
 
+              {/* Location */}
+              <Form.Item label="Location">
+                <Input
+                  placeholder="Location"
+                  value={formData.location}
+                  onChange={(e) => handleChange("location", e.target.value)}
+                  size="large"
+                />
+              </Form.Item>
+
+              {/* State and District */}
+              <Row gutter={12}>
+                <Col span={12}>
+                  <Form.Item label="State">
+                    <Select
+                      value={formData.state}
+                      onChange={(value) => handleChange("state", value)}
+                      size="large"
+                      placeholder="Select state"
+                    >
+                      {Object.keys(stateDistrictMap).map((state) => (
+                        <Option key={state} value={state}>
+                          {state}
+                        </Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item label="District">
+                    <Select
+                      value={formData.district}
+                      onChange={(value) => handleChange("district", value)}
+                      size="large"
+                      placeholder="Select district"
+                      disabled={!formData.state}
+                    >
+                      {districtOptions.map((district) => (
+                        <Option key={district} value={district}>
+                          {district}
+                        </Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </Col>
+              </Row>
+
+            </Col>
+
+            {/* Right Column */}
+            <Col xs={24} md={12}>
+
               {/* Services */}
               <Form.Item
                 label="Services"
@@ -425,10 +499,7 @@ const CreateLead = () => {
                   </Button>
                 </Dropdown>
               </Form.Item>
-            </Col>
 
-            {/* Right Column */}
-            <Col xs={24} md={12}>
               {/* Due Date */}
               <Form.Item
                 label="Due Date"
@@ -462,51 +533,21 @@ const CreateLead = () => {
                 </Select>
               </Form.Item>
 
-              {/* State and District */}
-              <Row gutter={12}>
-                <Col span={12}>
-                  <Form.Item label="State">
-                    <Select
-                      value={formData.state}
-                      onChange={(value) => handleChange("state", value)}
-                      size="large"
-                      placeholder="Select state"
-                    >
-                      {Object.keys(stateDistrictMap).map((state) => (
-                        <Option key={state} value={state}>
-                          {state}
-                        </Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item label="District">
-                    <Select
-                      value={formData.district}
-                      onChange={(value) => handleChange("district", value)}
-                      size="large"
-                      placeholder="Select district"
-                      disabled={!formData.state}
-                    >
-                      {districtOptions.map((district) => (
-                        <Option key={district} value={district}>
-                          {district}
-                        </Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              {/* Location */}
-              <Form.Item label="Location">
-                <Input
-                  placeholder="Location"
-                  value={formData.location}
-                  onChange={(e) => handleChange("location", e.target.value)}
+              {/* Assign To field */}
+              <Form.Item label="Assign To">
+                <Select
+                  mode="multiple"
+                  placeholder="Select users to assign"
+                  value={formData.assignedTo}
+                  onChange={(value) => handleChange("assignedTo", value)}
                   size="large"
-                />
+                >
+                  {users.map((user) => (
+                    <Option key={user.id} value={user.id}>
+                      {user.name}
+                    </Option>
+                  ))}
+                </Select>
               </Form.Item>
 
               {/* FAQ Type */}
