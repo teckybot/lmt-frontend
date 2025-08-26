@@ -174,51 +174,51 @@ const LeadsTable = () => {
   };
 
   const exportToExcel = async () => {
-  const isFiltered =
-    searchTerm ||
-    priorityFilter !== "All" ||
-    statusFilter !== "All" ||
-    sourceFilter !== "All";
+    const isFiltered =
+      searchTerm ||
+      priorityFilter !== "All" ||
+      statusFilter !== "All" ||
+      sourceFilter !== "All";
 
-  const dataToExport = (isFiltered ? filteredLeads : leads).map((lead) => ({
-    Title: lead.title || "N/A",
-    Customer: lead.customerName || "N/A",
-    Email: lead.email || "N/A",
-    Phone: lead.phone || "N/A",
-    Service: lead.source || "N/A",
-    Priority: lead.priority || "N/A",
-    Status: lead.status || "N/A",
-    "Due Date": lead.dueDate
-      ? new Date(lead.dueDate).toLocaleDateString("en-US")
-      : "N/A",
-    Notes: lead.notes || "",
-  }));
+    const dataToExport = (isFiltered ? filteredLeads : leads).map((lead) => ({
+      Title: lead.title || "N/A",
+      Customer: lead.customerName || "N/A",
+      Email: lead.email || "N/A",
+      Phone: lead.phone || "N/A",
+      Service: lead.source || "N/A",
+      Priority: lead.priority || "N/A",
+      Status: lead.status || "N/A",
+      "Due Date": lead.dueDate
+        ? new Date(lead.dueDate).toLocaleDateString("en-US")
+        : "N/A",
+      Notes: lead.notes || "",
+    }));
 
-  if (!dataToExport.length) {
-    alert("No data to export");
-    return;
-  }
+    if (!dataToExport.length) {
+      alert("No data to export");
+      return;
+    }
 
-  const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet('Leads');
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Leads');
 
-  // Add headers
-  const headers = Object.keys(dataToExport[0]);
-  worksheet.addRow(headers);
+    // Add headers
+    const headers = Object.keys(dataToExport[0]);
+    worksheet.addRow(headers);
 
-  // Add data rows
-  dataToExport.forEach(item => {
-    const row = headers.map(header => item[header]);
-    worksheet.addRow(row);
-  });
+    // Add data rows
+    dataToExport.forEach(item => {
+      const row = headers.map(header => item[header]);
+      worksheet.addRow(row);
+    });
 
-  const filename = isFiltered ? 'Filtered_Leads.xlsx' : 'All_Leads.xlsx';
+    const filename = isFiltered ? 'Filtered_Leads.xlsx' : 'All_Leads.xlsx';
 
-  // Browser download
-  const buffer = await workbook.xlsx.writeBuffer();
-  const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-  saveAs(blob, filename);
-};
+    // Browser download
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    saveAs(blob, filename);
+  };
 
 
   const filteredLeads = useMemo(() => {
