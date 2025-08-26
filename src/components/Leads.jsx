@@ -3,7 +3,7 @@ import { FiEdit, FiTrash2, FiSearch, FiDownload } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { Modal, Form, Input, Select, DatePicker, Button, Popconfirm, Pagination } from "antd";
 import dayjs from "dayjs";
-import * as XLSX from "xlsx";
+import ExcelJS from 'exceljs';
 import { saveAs } from "file-saver";
 import { FiLoader } from "react-icons/fi";
 import api from "../utils/axiosInstance";
@@ -173,39 +173,53 @@ const LeadsTable = () => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const exportToExcel = () => {
-    const isFiltered =
-      searchTerm ||
-      priorityFilter !== "All" ||
-      statusFilter !== "All" ||
-      sourceFilter !== "All";
+  const exportToExcel = async () => {
+  const isFiltered =
+    searchTerm ||
+    priorityFilter !== "All" ||
+    statusFilter !== "All" ||
+    sourceFilter !== "All";
 
-    const dataToExport = (isFiltered ? filteredLeads : leads).map((lead) => ({
-      Title: lead.title || "N/A",
-      Customer: lead.customerName || "N/A",
-      Email: lead.email || "N/A",
-      Phone: lead.phone || "N/A",
-      Service: lead.source || "N/A",
-      Priority: lead.priority || "N/A",
-      Status: lead.status || "N/A",
-      "Due Date": lead.dueDate
-        ? new Date(lead.dueDate).toLocaleDateString("en-US")
-        : "N/A",
-      Notes: lead.notes || "",
-    }));
+  const dataToExport = (isFiltered ? filteredLeads : leads).map((lead) => ({
+    Title: lead.title || "N/A",
+    Customer: lead.customerName || "N/A",
+    Email: lead.email || "N/A",
+    Phone: lead.phone || "N/A",
+    Service: lead.source || "N/A",
+    Priority: lead.priority || "N/A",
+    Status: lead.status || "N/A",
+    "Due Date": lead.dueDate
+      ? new Date(lead.dueDate).toLocaleDateString("en-US")
+      : "N/A",
+    Notes: lead.notes || "",
+  }));
 
-    if (!dataToExport.length) {
-      alert("No data to export");
-      return;
-    }
+  if (!dataToExport.length) {
+    alert("No data to export");
+    return;
+  }
 
-    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Leads");
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Leads');
 
-    const filename = isFiltered ? "Filtered_Leads.xlsx" : "All_Leads.xlsx";
-    XLSX.writeFile(workbook, filename);
-  };
+  // Add headers
+  const headers = Object.keys(dataToExport[0]);
+  worksheet.addRow(headers);
+
+  // Add data rows
+  dataToExport.forEach(item => {
+    const row = headers.map(header => item[header]);
+    worksheet.addRow(row);
+  });
+
+  const filename = isFiltered ? 'Filtered_Leads.xlsx' : 'All_Leads.xlsx';
+
+  // Browser download
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  saveAs(blob, filename);
+};
+
 
   const filteredLeads = useMemo(() => {
     return leads.filter((lead) => {
@@ -340,8 +354,8 @@ const LeadsTable = () => {
 
             {/* Filters - Always visible on desktop */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
-              <select 
-                value={priorityFilter} 
+              <select
+                value={priorityFilter}
                 onChange={(e) => setPriorityFilter(e.target.value)}
                 className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs md:text-sm"
               >
@@ -351,8 +365,8 @@ const LeadsTable = () => {
                 ))}
               </select>
 
-              <select 
-                value={statusFilter} 
+              <select
+                value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-xs md:text-sm"
               >
@@ -645,7 +659,7 @@ const LeadsTable = () => {
           {/* Desktop Card View */}
           <div className="hidden md:block">
             <PaginationControls />
-            
+
             {loading ? (
               <div className="flex items-center justify-center h-64">
                 <div className="flex flex-col items-center">
