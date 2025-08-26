@@ -69,6 +69,8 @@ const CreateLead = () => {
     state: "",
     district: "",
     location: "",
+    // New state for assigning to multiple users
+    assignedTo: [],
   };
 
   const [formData, setFormData] = useState(initialFormState);
@@ -76,7 +78,8 @@ const CreateLead = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [districtOptions, setDistrictOptions] = useState([]);
   const [otherServiceInput, setOtherServiceInput] = useState("");
-  const [isOtherModalVisible, setIsOtherModalVisible] = useState(false); // New state for modal
+  const [isOtherModalVisible, setIsOtherModalVisible] = useState(false);
+  const [users, setUsers] = useState([]); // New state for storing the list of users
 
   const priorityOptions = [
     { value: "High", label: "High" },
@@ -103,9 +106,21 @@ const CreateLead = () => {
     if (!token) navigate("/");
   }, [navigate]);
 
-  // Generic change handler
+  // Fetches users from the new backend endpoint when the component mounts
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await api.get("/users");
+        setUsers(response.data);
+      } catch (error) {
+        console.error("Failed to fetch users:", error);
+        message.error("Failed to load users for assignment.");
+      }
+    };
+    fetchUsers();
+  }, []); // Empty dependency array ensures it runs only once on mount
+
   const handleChange = (name, value) => {
-    // handle nested description updates
     if (name.startsWith("description.")) {
       const key = name.split(".")[1];
       setFormData((prev) => ({
@@ -119,12 +134,10 @@ const CreateLead = () => {
       return;
     }
 
-    // handle state change -> update district options
     if (name === "state") {
-      // Extract district names from the nested structure
-      const districts = stateDistrictMap[value]?.districts
-        ? Object.keys(stateDistrictMap[value].districts)
-        : [];
+      const districts = stateDistrictMap[value]?.districts ?
+        Object.keys(stateDistrictMap[value].districts) :
+        [];
       setDistrictOptions(districts);
       setFormData((prev) => ({ ...prev, state: value, district: "" }));
       if (errors.state) setErrors({ ...errors, state: null });
@@ -135,21 +148,19 @@ const CreateLead = () => {
     if (errors[name]) setErrors({ ...errors, [name]: null });
   };
 
-  // Service selection
   const handleServiceSelection = (service) => {
     if (service === "Other") {
       setIsOtherModalVisible(true);
       return;
     }
 
-    // toggle in services array
     setFormData((prev) => {
       const exists = prev.services.includes(service);
       return {
         ...prev,
-        services: exists
-          ? prev.services.filter((s) => s !== service)
-          : [...prev.services, service],
+        services: exists ?
+          prev.services.filter((s) => s !== service) :
+          [...prev.services, service],
       };
     });
   };
@@ -166,7 +177,7 @@ const CreateLead = () => {
       }));
     }
     setOtherServiceInput("");
-    setIsOtherModalVisible(false); // Close the modal
+    setIsOtherModalVisible(false);
   };
 
   const handleCancelOtherModal = () => {
@@ -188,7 +199,6 @@ const CreateLead = () => {
     }));
   };
 
-  // FAQ handlers
   const handleFaqTypeChange = (value) => {
     setFormData((prev) => ({
       ...prev,
@@ -212,7 +222,6 @@ const CreateLead = () => {
     }));
   };
 
-  // Validation
   const validateForm = () => {
     const newErrors = {};
     if (!formData.customerName) newErrors.customerName = "Customer name is required";
@@ -245,7 +254,6 @@ const CreateLead = () => {
     form.resetFields();
   };
 
-  // Submit
   const handleSubmit = async () => {
     if (!validateForm()) return;
     setIsSubmitting(true);
@@ -270,6 +278,7 @@ const CreateLead = () => {
         };
       }
 
+      // Updated payload to include the assignedTo field
       const payload = {
         customerName: formData.customerName,
         phone: formData.phone,
@@ -281,40 +290,42 @@ const CreateLead = () => {
         state: formData.state || null,
         district: formData.district || null,
         location: formData.location || null,
+        assignedTo: formData.assignedTo, // This is the fix!
       };
 
       await api.post("/leads", payload);
 
-      toast.success("Lead created successfully!", { autoClose: 3000 });
+      toast.success("Lead created successfully!", {
+        autoClose: 3000
+      });
       resetForm();
     } catch (err) {
       console.error("Create lead error:", err);
       toast.error(
-        err.response?.data?.error || err.response?.data?.message || "Error creating lead",
-        { autoClose: 4000 }
+        err.response?.data?.error || err.response?.data?.message || "Error creating lead", {
+          autoClose: 4000
+        }
       );
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Service dropdown menu
   const serviceMenu = (
     <Menu>
       {serviceOptions.map((service) => (
         <Menu.Item
           key={service}
           onClick={(e) => {
-            // Stop the click from closing the dropdown when "Other" is clicked
             if (service === "Other") {
               e.domEvent.stopPropagation();
             }
             handleServiceSelection(service);
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div className="flex items-center">
             {formData.services.includes(service) ? (
-              <span style={{ marginRight: 8 }}>✓</span>
+              <span className="mr-2">✓</span>
             ) : null}
             {service}
           </div>
@@ -324,16 +335,11 @@ const CreateLead = () => {
   );
 
   return (
-    <div style={{ maxWidth: 1200 }}>
+    <div className="max-w-6xl mx-auto">
       <Card
-        style={{
-          borderRadius: 12,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-          
-        }}
-        bodyStyle={{ padding: 32 }}
+        className="rounded-xl shadow-md"
       >
-        <Title level={2} style={{ textAlign: 'center', marginBottom: 32 }}>
+        <Title level={2} className="text-center mb-8">
           Create New Lead
         </Title>
 
@@ -393,89 +399,14 @@ const CreateLead = () => {
                 />
               </Form.Item>
 
-              {/* Services */}
-              <Form.Item
-                label="Services"
-                required
-                validateStatus={errors.services ? "error" : ""}
-                help={errors.services}
-              >
-                <div style={{ marginBottom: 8 }}>
-                  <Space wrap>
-                    {formData.services.map((service, index) => (
-                      <Tag
-                        key={index}
-                        closable
-                        onClose={() => removeService(service)}
-                        color="blue"
-                        style={{ padding: '4px 8px', borderRadius: 16 }}
-                      >
-                        {service}
-                      </Tag>
-                    ))}
-                    {formData.otherServices.map((service, index) => (
-                      <Tag
-                        key={`other-${index}`}
-                        closable
-                        onClose={() => removeOtherService(service)}
-                        color="purple"
-                        style={{ padding: '4px 8px', borderRadius: 16 }}
-                      >
-                        {service}
-                      </Tag>
-                    ))}
-                  </Space>
-                </div>
-
-                <Dropdown
-                  overlay={serviceMenu}
-                  trigger={['click']}
-                  open={isOtherModalVisible ? false : undefined} // Keep dropdown open while modal is visible
-                >
-                  <Button
-                    icon={<PlusOutlined />}
-                    size="large"
-                    style={{ width: '100%', textAlign: 'left' }}
-                  >
-                    Select Services <DownOutlined />
-                  </Button>
-                </Dropdown>
-              </Form.Item>
-            </Col>
-
-            {/* Right Column */}
-            <Col xs={24} md={12}>
-              {/* Due Date */}
-              <Form.Item
-                label="Due Date"
-                required
-                validateStatus={errors.dueDate ? "error" : ""}
-                help={errors.dueDate}
-              >
-                <DatePicker
-                  style={{ width: '100%' }}
+              {/* Location */}
+              <Form.Item label="Location">
+                <Input
+                  placeholder="Location"
+                  value={formData.location}
+                  onChange={(e) => handleChange("location", e.target.value)}
                   size="large"
-                  placeholder="Select due date"
-                  value={formData.dueDate ? dayjs(formData.dueDate) : null}
-                  onChange={(date, dateString) => handleChange("dueDate", dateString)}
-                  disabledDate={(current) => current && current < dayjs().startOf('day')}
-                  suffixIcon={<CalendarOutlined />}
                 />
-              </Form.Item>
-
-              {/* Priority */}
-              <Form.Item label="Priority">
-                <Select
-                  value={formData.priority}
-                  onChange={(value) => handleChange("priority", value)}
-                  size="large"
-                >
-                  {priorityOptions.map((option) => (
-                    <Option key={option.value} value={option.value}>
-                      {option.label}
-                    </Option>
-                  ))}
-                </Select>
               </Form.Item>
 
               {/* State and District */}
@@ -515,18 +446,112 @@ const CreateLead = () => {
                 </Col>
               </Row>
 
-              {/* Location */}
-              <Form.Item label="Location">
-                <Input
-                  placeholder="Location"
-                  value={formData.location}
-                  onChange={(e) => handleChange("location", e.target.value)}
+            </Col>
+
+            {/* Right Column */}
+            <Col xs={24} md={12}>
+
+              {/* Services */}
+              <Form.Item
+                label="Services"
+                required
+                validateStatus={errors.services ? "error" : ""}
+                help={errors.services}
+              >
+                <div className="mb-2">
+                  <Space wrap>
+                    {formData.services.map((service, index) => (
+                      <Tag
+                        key={index}
+                        closable
+                        onClose={() => removeService(service)}
+                        color="blue"
+                        className="py-1 px-2 rounded-2xl"
+                      >
+                        {service}
+                      </Tag>
+                    ))}
+                    {formData.otherServices.map((service, index) => (
+                      <Tag
+                        key={`other-${index}`}
+                        closable
+                        onClose={() => removeOtherService(service)}
+                        color="purple"
+                        className="py-1 px-2 rounded-2xl"
+                      >
+                        {service}
+                      </Tag>
+                    ))}
+                  </Space>
+                </div>
+
+                <Dropdown
+                  overlay={serviceMenu}
+                  trigger={['click']}
+                  open={isOtherModalVisible ? false : undefined}
+                >
+                  <Button
+                    icon={<PlusOutlined />}
+                    size="large"
+                    className="w-full text-left"
+                  >
+                    Select Services <DownOutlined />
+                  </Button>
+                </Dropdown>
+              </Form.Item>
+
+              {/* Due Date */}
+              <Form.Item
+                label="Due Date"
+                required
+                validateStatus={errors.dueDate ? "error" : ""}
+                help={errors.dueDate}
+              >
+                <DatePicker
+                  className="w-full"
                   size="large"
+                  placeholder="Select due date"
+                  value={formData.dueDate ? dayjs(formData.dueDate) : null}
+                  onChange={(date, dateString) => handleChange("dueDate", dateString)}
+                  disabledDate={(current) => current && current < dayjs().startOf('day')}
+                  suffixIcon={<CalendarOutlined />}
                 />
               </Form.Item>
 
+              {/* Priority */}
+              <Form.Item label="Priority">
+                <Select
+                  value={formData.priority}
+                  onChange={(value) => handleChange("priority", value)}
+                  size="large"
+                >
+                  {priorityOptions.map((option) => (
+                    <Option key={option.value} value={option.value}>
+                      {option.label}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+
+              {/* Assign To field */}
+              <Form.Item label="Assign To">
+                <Select
+                  mode="multiple"
+                  placeholder="Select users to assign"
+                  value={formData.assignedTo}
+                  onChange={(value) => handleChange("assignedTo", value)}
+                  size="large"
+                >
+                  {users.map((user) => (
+                    <Option key={user.id} value={user.id}>
+                      {user.name}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+
               {/* FAQ Type */}
-              <Form.Item label="FAQ Type">
+              <Form.Item label="Description">
                 <Select
                   value={formData.description.faqType}
                   onChange={handleFaqTypeChange}
@@ -553,7 +578,7 @@ const CreateLead = () => {
                       />
                     </Form.Item>
                   ) : (
-                    <Form.Item label="Variant">
+                    <Form.Item label="Description type">
                       <Select
                         value={formData.description.variant}
                         onChange={handleVariantChange}
@@ -587,7 +612,7 @@ const CreateLead = () => {
           <Divider />
 
           {/* Buttons */}
-          <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+          <Form.Item className="mb-0 text-right">
             <Space>
               <Button
                 size="large"
