@@ -76,7 +76,7 @@ const CreateLead = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [districtOptions, setDistrictOptions] = useState([]);
   const [otherServiceInput, setOtherServiceInput] = useState("");
-  const [isOtherModalVisible, setIsOtherModalVisible] = useState(false); // New state for modal
+  const [isOtherModalVisible, setIsOtherModalVisible] = useState(false);
 
   const priorityOptions = [
     { value: "High", label: "High" },
@@ -103,9 +103,7 @@ const CreateLead = () => {
     if (!token) navigate("/");
   }, [navigate]);
 
-  // Generic change handler
   const handleChange = (name, value) => {
-    // handle nested description updates
     if (name.startsWith("description.")) {
       const key = name.split(".")[1];
       setFormData((prev) => ({
@@ -119,9 +117,7 @@ const CreateLead = () => {
       return;
     }
 
-    // handle state change -> update district options
     if (name === "state") {
-      // Extract district names from the nested structure
       const districts = stateDistrictMap[value]?.districts
         ? Object.keys(stateDistrictMap[value].districts)
         : [];
@@ -135,14 +131,12 @@ const CreateLead = () => {
     if (errors[name]) setErrors({ ...errors, [name]: null });
   };
 
-  // Service selection
   const handleServiceSelection = (service) => {
     if (service === "Other") {
       setIsOtherModalVisible(true);
       return;
     }
 
-    // toggle in services array
     setFormData((prev) => {
       const exists = prev.services.includes(service);
       return {
@@ -166,7 +160,7 @@ const CreateLead = () => {
       }));
     }
     setOtherServiceInput("");
-    setIsOtherModalVisible(false); // Close the modal
+    setIsOtherModalVisible(false);
   };
 
   const handleCancelOtherModal = () => {
@@ -188,7 +182,6 @@ const CreateLead = () => {
     }));
   };
 
-  // FAQ handlers
   const handleFaqTypeChange = (value) => {
     setFormData((prev) => ({
       ...prev,
@@ -212,7 +205,6 @@ const CreateLead = () => {
     }));
   };
 
-  // Validation
   const validateForm = () => {
     const newErrors = {};
     if (!formData.customerName) newErrors.customerName = "Customer name is required";
@@ -245,7 +237,6 @@ const CreateLead = () => {
     form.resetFields();
   };
 
-  // Submit
   const handleSubmit = async () => {
     if (!validateForm()) return;
     setIsSubmitting(true);
@@ -298,23 +289,21 @@ const CreateLead = () => {
     }
   };
 
-  // Service dropdown menu
   const serviceMenu = (
     <Menu>
       {serviceOptions.map((service) => (
         <Menu.Item
           key={service}
           onClick={(e) => {
-            // Stop the click from closing the dropdown when "Other" is clicked
             if (service === "Other") {
               e.domEvent.stopPropagation();
             }
             handleServiceSelection(service);
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div className="flex items-center">
             {formData.services.includes(service) ? (
-              <span style={{ marginRight: 8 }}>✓</span>
+              <span className="mr-2">✓</span>
             ) : null}
             {service}
           </div>
@@ -324,16 +313,11 @@ const CreateLead = () => {
   );
 
   return (
-    <div style={{ maxWidth: 1200 }}>
+    <div className="max-w-6xl mx-auto">
       <Card
-        style={{
-          borderRadius: 12,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-          
-        }}
-        bodyStyle={{ padding: 32 }}
+        className="rounded-xl shadow-md"
       >
-        <Title level={2} style={{ textAlign: 'center', marginBottom: 32 }}>
+        <Title level={2} className="text-center mb-8">
           Create New Lead
         </Title>
 
@@ -400,7 +384,7 @@ const CreateLead = () => {
                 validateStatus={errors.services ? "error" : ""}
                 help={errors.services}
               >
-                <div style={{ marginBottom: 8 }}>
+                <div className="mb-2">
                   <Space wrap>
                     {formData.services.map((service, index) => (
                       <Tag
@@ -408,7 +392,7 @@ const CreateLead = () => {
                         closable
                         onClose={() => removeService(service)}
                         color="blue"
-                        style={{ padding: '4px 8px', borderRadius: 16 }}
+                        className="py-1 px-2 rounded-2xl"
                       >
                         {service}
                       </Tag>
@@ -419,7 +403,7 @@ const CreateLead = () => {
                         closable
                         onClose={() => removeOtherService(service)}
                         color="purple"
-                        style={{ padding: '4px 8px', borderRadius: 16 }}
+                        className="py-1 px-2 rounded-2xl"
                       >
                         {service}
                       </Tag>
@@ -430,12 +414,12 @@ const CreateLead = () => {
                 <Dropdown
                   overlay={serviceMenu}
                   trigger={['click']}
-                  open={isOtherModalVisible ? false : undefined} // Keep dropdown open while modal is visible
+                  open={isOtherModalVisible ? false : undefined}
                 >
                   <Button
                     icon={<PlusOutlined />}
                     size="large"
-                    style={{ width: '100%', textAlign: 'left' }}
+                    className="w-full text-left"
                   >
                     Select Services <DownOutlined />
                   </Button>
@@ -453,7 +437,7 @@ const CreateLead = () => {
                 help={errors.dueDate}
               >
                 <DatePicker
-                  style={{ width: '100%' }}
+                  className="w-full"
                   size="large"
                   placeholder="Select due date"
                   value={formData.dueDate ? dayjs(formData.dueDate) : null}
@@ -526,7 +510,7 @@ const CreateLead = () => {
               </Form.Item>
 
               {/* FAQ Type */}
-              <Form.Item label="FAQ Type">
+              <Form.Item label="Description">
                 <Select
                   value={formData.description.faqType}
                   onChange={handleFaqTypeChange}
@@ -553,7 +537,7 @@ const CreateLead = () => {
                       />
                     </Form.Item>
                   ) : (
-                    <Form.Item label="Variant">
+                    <Form.Item label="Description type">
                       <Select
                         value={formData.description.variant}
                         onChange={handleVariantChange}
@@ -587,7 +571,7 @@ const CreateLead = () => {
           <Divider />
 
           {/* Buttons */}
-          <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+          <Form.Item className="mb-0 text-right">
             <Space>
               <Button
                 size="large"
