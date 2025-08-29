@@ -221,7 +221,7 @@ const Analytics = () => {
     <div className="p-4 space-y-4 bg-gray-50 min-h-screen pb-20">
       {/* Header */}
       <header className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
+        <div className="mt-12">
           <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Lead Analytics</h1>
           <p className="text-gray-600 text-sm">Track performance by day, week, month, or year</p>
         </div>

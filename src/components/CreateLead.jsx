@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   UserOutlined,
@@ -32,7 +32,7 @@ import api from "../utils/axiosInstance";
 import stateDistrictMap from "../utils/stateDistrictMap.js";
 import dayjs from "dayjs";
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
 
@@ -69,7 +69,6 @@ const CreateLead = () => {
     state: "",
     district: "",
     location: "",
-    // New state for assigning to multiple users
     assignedTo: [],
   };
 
@@ -79,7 +78,17 @@ const CreateLead = () => {
   const [districtOptions, setDistrictOptions] = useState([]);
   const [otherServiceInput, setOtherServiceInput] = useState("");
   const [isOtherModalVisible, setIsOtherModalVisible] = useState(false);
-  const [users, setUsers] = useState([]); // New state for storing the list of users
+  const [users, setUsers] = useState([]);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const priorityOptions = [
     { value: "High", label: "High" },
@@ -106,7 +115,7 @@ const CreateLead = () => {
     if (!token) navigate("/");
   }, [navigate]);
 
-  // Fetches users from the new backend endpoint when the component mounts
+  // Fetch users for assignment
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -114,11 +123,11 @@ const CreateLead = () => {
         setUsers(response.data);
       } catch (error) {
         console.error("Failed to fetch users:", error);
-        message.error("Failed to load users for assignment.");
+        message.error("Failed to load users.");
       }
     };
     fetchUsers();
-  }, []); // Empty dependency array ensures it runs only once on mount
+  }, []);
 
   const handleChange = (name, value) => {
     if (name.startsWith("description.")) {
@@ -278,7 +287,6 @@ const CreateLead = () => {
         };
       }
 
-      // Updated payload to include the assignedTo field
       const payload = {
         customerName: formData.customerName,
         phone: formData.phone,
@@ -290,27 +298,25 @@ const CreateLead = () => {
         state: formData.state || null,
         district: formData.district || null,
         location: formData.location || null,
-        assignedTo: formData.assignedTo, // This is the fix!
+        assignedTo: formData.assignedTo,
       };
 
       await api.post("/leads", payload);
 
-      toast.success("Lead created successfully!", {
-        autoClose: 3000
-      });
+      toast.success("Lead created successfully!", { autoClose: 3000 });
       resetForm();
     } catch (err) {
       console.error("Create lead error:", err);
       toast.error(
-        err.response?.data?.error || err.response?.data?.message || "Error creating lead", {
-          autoClose: 4000
-        }
+        err.response?.data?.error || err.response?.data?.message || "Error creating lead",
+        { autoClose: 4000 }
       );
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  // Service dropdown menu
   const serviceMenu = (
     <Menu>
       {serviceOptions.map((service) => (
@@ -334,90 +340,186 @@ const CreateLead = () => {
     </Menu>
   );
 
-  return (
-    <div className="max-w-6xl mx-auto">
-      <Card
-        className="rounded-xl shadow-md"
-      >
-        <Title level={2} className="text-center mb-8">
-          Create New Lead
-        </Title>
+  // Assign To dropdown with user avatars
+  const assignToMenu = (
+    <Menu>
+      {users.map((user) => (
+        <Menu.Item
+          key={user.id}
+          onClick={() => {
+            const current = formData.assignedTo;
+            const updated = current.includes(user.id)
+              ? current.filter(id => id !== user.id)
+              : [...current, user.id];
+            handleChange("assignedTo", updated);
+          }}
+        >
+          <div className="flex items-center gap-2">
+            {user.avatar ? (
+              <img
+                src={user.avatar}
+                alt={user.name}
+                className="w-8 h-8 rounded-md border border-gray-300 object-cover"
+                onError={(e) => {
+                  e.target.src = "https://via.placeholder.com/32?text=U";
+                  e.target.className = "w-8 h-8 rounded-md bg-gray-100 flex items-center justify-center border border-gray-300";
+                }}
+              />
+            ) : (
+              <div className="w-8 h-8 flex items-center justify-center rounded-md bg-gray-100 border border-gray-300">
+                <UserOutlined className="text-gray-500" />
+              </div>
+            )}
+            <div className="flex flex-col">
+              <span className="text-sm font-medium">{user.name}</span>
+              <span className="text-xs text-gray-500">{user.email}</span>
+            </div>
+            {formData.assignedTo.includes(user.id) && (
+              <span className="ml-auto text-green-500">✓</span>
+            )}
+          </div>
+        </Menu.Item>
+      ))}
+    </Menu>
+  );
 
+  // Show avatar + name + email below the email field
+  const getAssignedUserCards = () => {
+    return formData.assignedTo
+      .map(id => {
+        const user = users.find(u => u.id === id);
+        return user ? (
+          <div key={id} className="flex items-center gap-2 mb-2 p-2 bg-gray-50 rounded-md">
+            {user.avatar ? (
+              <img
+                src={user.avatar}
+                alt={user.name}
+                className="w-8 h-8 rounded-md border border-gray-300 object-cover"
+                onError={(e) => {
+                  e.target.src = "https://via.placeholder.com/32?text=U";
+                  e.target.className = "w-8 h-8 rounded-md bg-gray-100 flex items-center justify-center border border-gray-300";
+                }}
+              />
+            ) : (
+              <div className="w-8 h-8 flex items-center justify-center rounded-md bg-gray-100 border border-gray-300">
+                <UserOutlined className="text-gray-500 text-xs" />
+              </div>
+            )}
+            <div className="flex flex-col">
+              <span className="text-sm font-medium text-gray-700">{user.name}</span>
+              <span className="text-xs text-gray-500">{user.email}</span>
+            </div>
+          </div>
+        ) : null;
+      })
+      .filter(Boolean);
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto px-4 py-6 bg-gray-50 rounded-3xl shadow-xl">
+      <div className="mb-4 text-center">
+        <div className="inline-flex flex-col items-center relative">
+          <Title level={1} className="text-2xl md:text-3xl font-extrabold text-gray-900 mb-2 tracking-tight">
+            Create New Lead
+          </Title>
+          <Text className="text-base text-gray-600 max-w-md leading-relaxed">
+            Fill in the details below to create a new lead for your business
+          </Text>
+        </div>  
+      </div>
+
+      <Card
+        className=" border-0 rounded-lg bg-gray-50 "
+        bodyStyle={{ padding: isMobile ? '16px' : '24px' }}
+      >
         <Form
           form={form}
           layout="vertical"
           onFinish={handleSubmit}
           initialValues={initialFormState}
         >
-          <Row gutter={24}>
+          <Row gutter={isMobile ? 0 : 24}>
             {/* Left Column */}
             <Col xs={24} md={12}>
-              {/* Customer Name */}
               <Form.Item
                 label="Customer Name"
                 required
                 validateStatus={errors.customerName ? "error" : ""}
                 help={errors.customerName}
+                className="mb-4"
               >
                 <Input
-                  prefix={<UserOutlined />}
-                  placeholder="Customer Name"
+                  prefix={<UserOutlined className="text-gray-400" />}
+                  placeholder="Enter customer name"
                   value={formData.customerName}
                   onChange={(e) => handleChange("customerName", e.target.value)}
                   size="large"
+                  className="rounded-md"
                 />
               </Form.Item>
 
-              {/* Phone */}
               <Form.Item
                 label="Phone"
                 required
                 validateStatus={errors.phone ? "error" : ""}
                 help={errors.phone}
+                className="mb-4"
               >
                 <Input
-                  prefix={<PhoneOutlined />}
-                  placeholder="Phone Number"
+                  prefix={<PhoneOutlined className="text-gray-400" />}
+                  placeholder="Enter phone number"
                   value={formData.phone}
                   onChange={(e) => handleChange("phone", e.target.value)}
                   size="large"
+                  className="rounded-md"
                 />
               </Form.Item>
 
-              {/* Email */}
               <Form.Item
                 label="Email"
                 validateStatus={errors.email ? "error" : ""}
                 help={errors.email}
+                className="mb-4"
               >
                 <Input
-                  prefix={<MailOutlined />}
-                  placeholder="Email Address"
+                  prefix={<MailOutlined className="text-gray-400" />}
+                  placeholder="Enter email address"
                   value={formData.email}
                   onChange={(e) => handleChange("email", e.target.value)}
                   size="large"
+                  className="rounded-md"
                 />
               </Form.Item>
 
-              {/* Location */}
-              <Form.Item label="Location">
+              {/* Avatar + Name + Email below the Email field */}
+              {formData.assignedTo.length > 0 && (
+                <div className="mt-2 mb-4">
+                  <p className="text-sm text-gray-600 mb-2 font-medium">Assigned Users:</p>
+                  <div className="space-y-2">
+                    {getAssignedUserCards()}
+                  </div>
+                </div>
+              )}
+
+              <Form.Item label="Location" className="mb-4">
                 <Input
-                  placeholder="Location"
+                  placeholder="Enter location"
                   value={formData.location}
                   onChange={(e) => handleChange("location", e.target.value)}
                   size="large"
+                  className="rounded-md"
                 />
               </Form.Item>
 
-              {/* State and District */}
-              <Row gutter={12}>
-                <Col span={12}>
-                  <Form.Item label="State">
+              <Row gutter={isMobile ? 0 : 12} className={isMobile ? "space-y-4" : ""}>
+                <Col xs={24} sm={12}>
+                  <Form.Item label="State" className="mb-4">
                     <Select
                       value={formData.state}
                       onChange={(value) => handleChange("state", value)}
                       size="large"
                       placeholder="Select state"
+                      className="rounded-md"
                     >
                       {Object.keys(stateDistrictMap).map((state) => (
                         <Option key={state} value={state}>
@@ -427,14 +529,15 @@ const CreateLead = () => {
                     </Select>
                   </Form.Item>
                 </Col>
-                <Col span={12}>
-                  <Form.Item label="District">
+                <Col xs={24} sm={12}>
+                  <Form.Item label="District" className="mb-4">
                     <Select
                       value={formData.district}
                       onChange={(value) => handleChange("district", value)}
                       size="large"
                       placeholder="Select district"
                       disabled={!formData.state}
+                      className="rounded-md"
                     >
                       {districtOptions.map((district) => (
                         <Option key={district} value={district}>
@@ -445,18 +548,16 @@ const CreateLead = () => {
                   </Form.Item>
                 </Col>
               </Row>
-
             </Col>
 
             {/* Right Column */}
             <Col xs={24} md={12}>
-
-              {/* Services */}
               <Form.Item
                 label="Services"
                 required
                 validateStatus={errors.services ? "error" : ""}
                 help={errors.services}
+                className="mb-4"
               >
                 <div className="mb-2">
                   <Space wrap>
@@ -465,8 +566,7 @@ const CreateLead = () => {
                         key={index}
                         closable
                         onClose={() => removeService(service)}
-                        color="blue"
-                        className="py-1 px-2 rounded-2xl"
+                        className="py-1 px-2 rounded-md text-xs border-gray-300 bg-gray-50"
                       >
                         {service}
                       </Tag>
@@ -476,8 +576,7 @@ const CreateLead = () => {
                         key={`other-${index}`}
                         closable
                         onClose={() => removeOtherService(service)}
-                        color="purple"
-                        className="py-1 px-2 rounded-2xl"
+                        className="py-1 px-2 rounded-md text-xs border-gray-300 bg-gray-50"
                       >
                         {service}
                       </Tag>
@@ -485,45 +584,41 @@ const CreateLead = () => {
                   </Space>
                 </div>
 
-                <Dropdown
-                  overlay={serviceMenu}
-                  trigger={['click']}
-                  open={isOtherModalVisible ? false : undefined}
-                >
+                <Dropdown overlay={serviceMenu} trigger={['click']} placement="bottomRight">
                   <Button
                     icon={<PlusOutlined />}
                     size="large"
-                    className="w-full text-left"
+                    className="w-full text-left rounded-md border-gray-300"
                   >
-                    Select Services <DownOutlined />
+                    Add Services <DownOutlined />
                   </Button>
                 </Dropdown>
               </Form.Item>
 
-              {/* Due Date */}
               <Form.Item
                 label="Due Date"
                 required
                 validateStatus={errors.dueDate ? "error" : ""}
                 help={errors.dueDate}
+                className="mb-4"
               >
                 <DatePicker
-                  className="w-full"
+                  className="w-full rounded-md"
                   size="large"
                   placeholder="Select due date"
                   value={formData.dueDate ? dayjs(formData.dueDate) : null}
                   onChange={(date, dateString) => handleChange("dueDate", dateString)}
                   disabledDate={(current) => current && current < dayjs().startOf('day')}
-                  suffixIcon={<CalendarOutlined />}
+                  suffixIcon={<CalendarOutlined className="text-gray-400" />}
                 />
               </Form.Item>
 
-              {/* Priority */}
-              <Form.Item label="Priority">
+              <Form.Item label="Priority" className="mb-4">
                 <Select
                   value={formData.priority}
                   onChange={(value) => handleChange("priority", value)}
                   size="large"
+                  className="rounded-md"
                 >
                   {priorityOptions.map((option) => (
                     <Option key={option.value} value={option.value}>
@@ -533,30 +628,33 @@ const CreateLead = () => {
                 </Select>
               </Form.Item>
 
-              {/* Assign To field */}
-              <Form.Item label="Assign To">
-                <Select
-                  mode="multiple"
-                  placeholder="Select users to assign"
-                  value={formData.assignedTo}
-                  onChange={(value) => handleChange("assignedTo", value)}
-                  size="large"
-                >
-                  {users.map((user) => (
-                    <Option key={user.id} value={user.id}>
-                      {user.name}
-                    </Option>
-                  ))}
-                </Select>
+              {/* Assign To Field */}
+              <Form.Item label="Assign To" className="mb-4">
+                <Dropdown overlay={assignToMenu} trigger={['click']} placement="bottomRight">
+                  <Button
+                    icon={<UserOutlined />}
+                    size="large"
+                    className="w-full text-left flex items-center justify-between rounded-md border-gray-300"
+                  >
+                    <span>
+                      {formData.assignedTo.length > 0
+                        ? `${formData.assignedTo.length} user${formData.assignedTo.length > 1 ? 's' : ''} selected`
+                        : 'Assign Users'
+                      }
+                    </span>
+                    <DownOutlined />
+                  </Button>
+                </Dropdown>
               </Form.Item>
 
-              {/* FAQ Type */}
-              <Form.Item label="Description">
+              {/* Description */}
+              <Form.Item label="Description" className="mb-4">
                 <Select
                   value={formData.description.faqType}
                   onChange={handleFaqTypeChange}
                   size="large"
                   placeholder="Select FAQ type"
+                  className="rounded-md"
                 >
                   <Option value="Mail">Mail</Option>
                   <Option value="Call">Call</Option>
@@ -565,25 +663,26 @@ const CreateLead = () => {
                 </Select>
               </Form.Item>
 
-              {/* FAQ Variant or Custom Inputs */}
               {formData.description.faqType && (
                 <>
                   {formData.description.faqType === "Custom" ? (
-                    <Form.Item label="Custom FAQ Type">
+                    <Form.Item label="Custom FAQ Type" className="mb-4">
                       <Input
                         placeholder="Enter custom FAQ type"
                         value={formData.description.customFaqType}
                         onChange={(e) => handleChange("description.customFaqType", e.target.value)}
                         size="large"
+                        className="rounded-md"
                       />
                     </Form.Item>
                   ) : (
-                    <Form.Item label="Description type">
+                    <Form.Item label="Description Type" className="mb-4">
                       <Select
                         value={formData.description.variant}
                         onChange={handleVariantChange}
                         size="large"
                         placeholder="Select variant"
+                        className="rounded-md"
                       >
                         {(faqVariants[formData.description.faqType] || []).map((variant) => (
                           <Option key={variant} value={variant}>
@@ -595,12 +694,13 @@ const CreateLead = () => {
                   )}
 
                   {(formData.description.variant === "Custom" || formData.description.faqType === "Custom") && (
-                    <Form.Item label="Custom Details">
+                    <Form.Item label="Custom Details" className="mb-4">
                       <TextArea
                         placeholder="Enter custom details"
                         value={formData.description.customVariant}
                         onChange={(e) => handleChange("description.customVariant", e.target.value)}
                         rows={3}
+                        className="rounded-md"
                       />
                     </Form.Item>
                   )}
@@ -609,15 +709,15 @@ const CreateLead = () => {
             </Col>
           </Row>
 
-          <Divider />
+          <Divider className="my-6" />
 
-          {/* Buttons */}
-          <Form.Item className="mb-0 text-right">
-            <Space>
+          <Form.Item className="mb-0">
+            <div className={`flex ${isMobile ? 'flex-col-reverse space-y-4 space-y-reverse' : 'justify-end space-x-4'}`}>
               <Button
                 size="large"
                 onClick={() => navigate("/dashboard")}
                 disabled={isSubmitting}
+                className={`rounded-md ${isMobile ? 'w-full' : ''}`}
               >
                 Cancel
               </Button>
@@ -627,10 +727,11 @@ const CreateLead = () => {
                 size="large"
                 loading={isSubmitting}
                 icon={<FileTextOutlined />}
+                className={`rounded-md ${isMobile ? 'w-full' : ''}`}
               >
                 {isSubmitting ? "Creating..." : "Create Lead"}
               </Button>
-            </Space>
+            </div>
           </Form.Item>
         </Form>
       </Card>
@@ -642,11 +743,22 @@ const CreateLead = () => {
         onOk={handleAddOtherService}
         onCancel={handleCancelOtherModal}
         destroyOnClose={true}
+        width={400}
+        footer={[
+          <Button key="cancel" onClick={handleCancelOtherModal} className="rounded-md">
+            Cancel
+          </Button>,
+          <Button key="submit" type="primary" onClick={handleAddOtherService} className="rounded-md">
+            Add Service
+          </Button>,
+        ]}
       >
         <Input
           placeholder="Enter custom service name"
           value={otherServiceInput}
           onChange={(e) => setOtherServiceInput(e.target.value)}
+          autoFocus
+          className="rounded-md"
         />
       </Modal>
 
