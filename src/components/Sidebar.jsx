@@ -75,7 +75,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
   let menuItems = [];
   if (role === "employee") {
     menuItems = allMenuItems.filter(item =>
-      ["leads", "profile", "assigns"].includes(item.id.toLowerCase())
+      ["leads", "profile"].includes(item.id.toLowerCase())
     );
   } else if (role === "admin") {
     // Admin can access everything EXCEPT super admin-only items

@@ -189,6 +189,7 @@ const LeadsTable = () => {
                     {showModal && editingLead && (
                         <LeadDetailsModal
                             lead={editingLead}
+                            role={role}
                             onClose={() => setShowModal(false)}
                             onUpdate={handleUpdateLead}
                             loading={loading}

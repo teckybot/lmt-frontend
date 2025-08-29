@@ -17,10 +17,12 @@ const SOURCE_OPTIONS = [
 ];
 
 
-const LeadDetailsModal = ({ lead, onClose, onUpdate, loading }) => {
+const LeadDetailsModal = ({ lead, role, onClose, onUpdate, loading }) => {
     const [form] = Form.useForm();
     const [selectedState, setSelectedState] = useState(lead?.state);
     const [isAssigneeSelectorVisible, setIsAssigneeSelectorVisible] = useState(false);
+
+    const isEmployee = (role || "").toLowerCase() === "employee";
 
     useEffect(() => {
         if (lead) {
@@ -75,7 +77,7 @@ const LeadDetailsModal = ({ lead, onClose, onUpdate, loading }) => {
             title={
                 <div className="flex items-center gap-2">
                     <FiEdit className="text-blue-500" />
-                    <span className="font-semibold text-gray-800">{lead.title || "Edit Lead"}</span>
+                    <span className="font-semibold text-gray-800">{lead.title || (isEmployee ? "View Lead" : "Edit Lead")}</span>
                 </div>
             }
             open={true}
@@ -90,6 +92,7 @@ const LeadDetailsModal = ({ lead, onClose, onUpdate, loading }) => {
                 layout="vertical"
                 onFinish={handleFormSubmit}
                 className="mt-4"
+                disabled={isEmployee}
             >
                 {/* Top Section */}
                 <div className="flex items-center justify-between gap-4 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
@@ -108,8 +111,8 @@ const LeadDetailsModal = ({ lead, onClose, onUpdate, loading }) => {
                     <div className="flex-1 flex flex-col items-center">
                         <span className="text-sm font-medium text-gray-600">Assigned to</span>
                         <div
-                            className="flex items-center gap-1 mt-1 cursor-pointer hover:underline"
-                            onClick={() => setIsAssigneeSelectorVisible(true)}
+                            className={`flex items-center gap-1 mt-1 ${isEmployee ? "" : "cursor-pointer hover:underline"}`}
+                            onClick={() => { if (!isEmployee) setIsAssigneeSelectorVisible(true); }}
                         >
                             {lead.assignees.length > 0 ? (
                                 lead.assignees.slice(0, 3).map((assignee) => (
@@ -149,11 +152,11 @@ const LeadDetailsModal = ({ lead, onClose, onUpdate, loading }) => {
                         </h3>
                         <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-2">
                             <div className="flex items-center gap-2">
-                                <span className="font-medium text-gray-700">FAQ Type:</span>
+                                <span className="font-medium text-gray-700">Action:</span>
                                 <span className="text-gray-900">{lead.description?.faqType || "N/A"}</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="font-medium text-gray-700">Variant:</span>
+                                <span className="font-medium text-gray-700">Action Details:</span>
                                 <span className="text-gray-900">{lead.description?.variant || "N/A"}</span>
                             </div>
                         </div>
@@ -266,18 +269,22 @@ const LeadDetailsModal = ({ lead, onClose, onUpdate, loading }) => {
                 </div>
 
                 <div className="flex justify-end gap-3 mt-4">
-                    <Button onClick={onClose}>Cancel</Button>
-                    <Button type="primary" htmlType="submit" loading={loading}>
-                        Save Changes
-                    </Button>
+                    <Button onClick={onClose}>Close</Button>
+                    {!isEmployee && (
+                        <Button type="primary" htmlType="submit" loading={loading}>
+                            Save Changes
+                        </Button>
+                    )}
                 </div>
             </Form>
-            <AssigneeSelector
-                lead={lead}
-                visible={isAssigneeSelectorVisible}
-                onClose={() => setIsAssigneeSelectorVisible(false)}
-                onAssign={handleAssignLead}
-            />
+            {!isEmployee && (
+                <AssigneeSelector
+                    lead={lead}
+                    visible={isAssigneeSelectorVisible}
+                    onClose={() => setIsAssigneeSelectorVisible(false)}
+                    onAssign={handleAssignLead}
+                />
+            )}
         </Modal>
     );
 };

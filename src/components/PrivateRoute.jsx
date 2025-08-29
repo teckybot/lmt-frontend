@@ -13,7 +13,7 @@ const PrivateRoute = ({ children }) => {
 
   // Optionally, you can add role-based route protection here
   const location = window.location.pathname;
-  if (role === "super_admin" && !location.startsWith("/dashboard")) {
+  if (role === "super admin" && !location.startsWith("/dashboard")) {
     return <Navigate to="/dashboard" />;
   }
   if (role === "admin" && !location.startsWith("/admin-dashboard")) {
