@@ -17,6 +17,7 @@ import {
   FiChevronUp,
   FiChevronLeft,
   FiChevronRight,
+  FiFilter,
 } from "react-icons/fi";
 
 import {
@@ -27,15 +28,19 @@ import {
   endOfWeek,
   startOfMonth,
   endOfMonth,
+  startOfYear,
+  endOfYear,
   addWeeks,
   subWeeks,
   addMonths,
   subMonths,
+  addYears,
+  subYears,
   addDays,
   subDays,
 } from "date-fns";
 
-import api from "../utils/axiosInstance"; // your axios instance
+import api from "../utils/axiosInstance";
 
 const Analytics = () => {
   const [analyticsData, setAnalyticsData] = useState(null);
@@ -43,12 +48,19 @@ const Analytics = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [expandedSection, setExpandedSection] = useState(null);
 
-  const [view, setView] = useState("weekly");
+  // View and date range
+  const [view, setView] = useState("monthly"); // default to monthly
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
 
+  // Filter: show all or specific status
+  const [filter, setFilter] = useState("total"); // "total", "new", "inProgress", "closed"
+
+  // Custom date picker visibility
   const [showCustomPicker, setShowCustomPicker] = useState(false);
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
   const popRef = useRef();
+  const filterRef = useRef();
 
   // Format date as YYYY-MM-DD
   const formatDate = (date) => {
@@ -68,6 +80,9 @@ const Analytics = () => {
     } else if (v === "monthly") {
       s = startOfMonth(anchorDate);
       e = endOfMonth(anchorDate);
+    } else if (v === "yearly") {
+      s = startOfYear(anchorDate);
+      e = endOfYear(anchorDate);
     } else {
       s = startOfDay(anchorDate);
       e = endOfDay(anchorDate);
@@ -87,7 +102,7 @@ const Analytics = () => {
     setRangeForView(anchor, view);
   }, [view]);
 
-  // Fetch analytics when dates change
+  // Fetch analytics when dates or filter changes
   useEffect(() => {
     if (!startDate || !endDate) return;
     fetchAnalytics();
@@ -122,25 +137,31 @@ const Analytics = () => {
     }
   };
 
+  // Navigation
   const goPrev = () => {
     if (!startDate) return;
-    if (view === "daily") setRangeForView(subDays(startDate, 1), view);
-    else if (view === "weekly") setRangeForView(subWeeks(startDate, 1), view);
-    else if (view === "monthly") setRangeForView(subMonths(startDate, 1), view);
+    if (view === "daily") setRangeForView(subDays(startDate, 1));
+    else if (view === "weekly") setRangeForView(subWeeks(startDate, 1));
+    else if (view === "monthly") setRangeForView(subMonths(startDate, 1));
+    else if (view === "yearly") setRangeForView(subYears(startDate, 1));
   };
 
   const goNext = () => {
     if (!startDate) return;
-    if (view === "daily") setRangeForView(addDays(startDate, 1), view);
-    else if (view === "weekly") setRangeForView(addWeeks(startDate, 1), view);
-    else if (view === "monthly") setRangeForView(addMonths(startDate, 1), view);
+    if (view === "daily") setRangeForView(addDays(startDate, 1));
+    else if (view === "weekly") setRangeForView(addWeeks(startDate, 1));
+    else if (view === "monthly") setRangeForView(addMonths(startDate, 1));
+    else if (view === "yearly") setRangeForView(addYears(startDate, 1));
   };
 
-  // Close custom picker on outside click
+  // Close popovers on outside click
   useEffect(() => {
     const handler = (e) => {
       if (popRef.current && !popRef.current.contains(e.target)) {
         setShowCustomPicker(false);
+      }
+      if (filterRef.current && !filterRef.current.contains(e.target)) {
+        setShowFilterMenu(false);
       }
     };
     document.addEventListener("mousedown", handler);
@@ -164,7 +185,7 @@ const Analytics = () => {
 
   if (error) {
     return (
-      <div className="bg-red-50 border-l-4 border-red-500 p-4 my-4">
+      <div className="bg-red-50 border-l-4 border-red-500 p-4 mx-4 my-4 rounded">
         <div className="flex items-center">
           <FiAlertCircle className="text-red-500 mr-2" />
           <span className="text-red-700 font-medium">{error}</span>
@@ -188,49 +209,89 @@ const Analytics = () => {
   const fmt = (d) => (d ? format(d, "dd MMM yyyy") : "N/A");
   const rangeText = `${fmt(startDate)} - ${fmt(endDate)}`;
 
+  // Filtered stats for KPI cards
+  const displayStats = {
+    total: stats.total || 0,
+    new: stats.new || 0,
+    inProgress: stats.inProgress || 0,
+    closed: stats.closed || 0,
+  };
+
   return (
-    <div className="p-4 space-y-4 bg-gray-50 mt-16 md:mt-0">
+    <div className="p-4 space-y-4 bg-gray-50 min-h-screen pb-20">
       {/* Header */}
-      <header className="mb-4 flex items-start md:items-center md:justify-between gap-4">
+      <header className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Lead Analytics Dashboard</h1>
-          <p className="text-gray-600">Overview of your leads and conversions</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Lead Analytics</h1>
+          <p className="text-gray-600 text-sm">Track performance by day, week, month, or year</p>
         </div>
 
-        <div className="flex items-center space-x-3">
-          <div className="flex items-center bg-gray-900 text-white rounded-md px-2 py-1">
-            <button onClick={goPrev} className="p-1 hover:bg-white/10 rounded" title="Previous">
+        {/* View & Filter Controls */}
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          {/* Date Navigation */}
+          <div className="flex items-center bg-gray-900 text-white rounded-md px-2 py-1 text-sm w-full sm:w-auto">
+            <button onClick={goPrev} className="p-1 hover:bg-white/10 rounded" aria-label="Previous">
               <FiChevronLeft />
             </button>
-
             <button
               onClick={() => setShowCustomPicker((s) => !s)}
-              className="px-3 py-1 text-sm font-medium text-left"
+              className="px-2 py-1 flex-1 text-left truncate"
             >
               {rangeText}
             </button>
-
-            <button onClick={goNext} className="p-1 hover:bg-white/10 rounded" title="Next">
+            <button onClick={goNext} className="p-1 hover:bg-white/10 rounded" aria-label="Next">
               <FiChevronRight />
             </button>
           </div>
 
+          {/* View Selector */}
           <select
             value={view}
             onChange={(e) => setView(e.target.value)}
-            className="bg-white border rounded px-3 py-1 text-sm"
+            className="w-full sm:w-auto bg-white border rounded px-3 py-1 text-sm"
           >
             <option value="daily">Daily</option>
             <option value="weekly">Weekly</option>
             <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
           </select>
+
+          {/* Filter Button */}
+          <div className="relative" ref={filterRef}>
+            <button
+              onClick={() => setShowFilterMenu(!showFilterMenu)}
+              className="flex items-center gap-2 bg-blue-600 text-white px-3 py-1 rounded text-sm w-full sm:w-auto"
+            >
+              <FiFilter /> Filter: {filter.charAt(0).toUpperCase() + filter.slice(1)}
+            </button>
+
+            {showFilterMenu && (
+              <div className="absolute right-0 mt-1 bg-white border rounded shadow-lg z-10 w-40">
+                {Object.entries(displayStats).map(([key, value]) => (
+                  <button
+                    key={key}
+                    onClick={() => {
+                      setFilter(key);
+                      setShowFilterMenu(false);
+                    }}
+                    className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${
+                      filter === key ? "bg-blue-50 font-medium text-blue-700" : ""
+                    }`}
+                  >
+                    {key.charAt(0).toUpperCase() + key.slice(1)} ({value})
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
-      {/* Custom Date Picker Popover */}
+      {/* Custom Date Picker */}
       {showCustomPicker && (
-        <div ref={popRef} className="absolute z-30 mt-2 right-6 bg-white border rounded shadow p-4 w-[320px]">
-          <div className="flex flex-col space-y-3">
+        <div ref={popRef} className="absolute z-30 mt-2 left-4 right-4 sm:left-auto sm:right-6 bg-white border rounded shadow p-4 max-w-md mx-auto">
+          <h3 className="font-semibold mb-3">Custom Range</h3>
+          <div className="grid grid-cols-1 gap-3">
             <div>
               <label className="text-xs text-gray-500">Start Date</label>
               <DatePicker
@@ -256,13 +317,7 @@ const Analytics = () => {
                 className="w-full border p-2 rounded mt-1"
               />
             </div>
-            <div className="flex justify-end space-x-2">
-              <button
-                onClick={() => setShowCustomPicker(false)}
-                className="px-3 py-1 text-sm border rounded"
-              >
-                Cancel
-              </button>
+            <div className="flex justify-end">
               <button
                 onClick={() => setShowCustomPicker(false)}
                 className="px-3 py-1 text-sm bg-blue-600 text-white rounded"
@@ -274,100 +329,90 @@ const Analytics = () => {
         </div>
       )}
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 gap-4">
-        <KPICard
-          title="Total Leads"
-          value={stats.total || 0}
-          icon={<FiBarChart2 className="text-blue-500 text-2xl" />}
-          trend="total"
-          large
-        />
-        <KPICard
-          title="New Leads"
-          value={stats.new || 0}
-          icon={<FiUser className="text-green-500 text-2xl" />}
-          trend="new"
-          large
-        />
-        <KPICard
-          title="In Progress"
-          value={stats.inProgress || 0}
-          icon={<FiLoader className="text-yellow-500 text-2xl" />}
-          trend="inProgress"
-          large
-        />
-        <KPICard
-          title="Closed Leads"
-          value={stats.closed || 0}
-          icon={<FiCheckCircle className="text-purple-500 text-2xl" />}
-          trend="closed"
-          large
-        />
+      {/* KPI Cards - Responsive Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {Object.entries(displayStats).map(([key, value]) => (
+          <div
+            key={key}
+            className={`bg-white p-4 rounded-xl shadow-sm border border-gray-100 ${
+              filter === key ? "ring-2 ring-blue-500" : ""
+            }`}
+          >
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-xs font-medium text-gray-500 capitalize">{key} Leads</p>
+                <h3 className="text-2xl font-bold mt-1">{value}</h3>
+              </div>
+              <div className="p-2 rounded-lg bg-gray-50">
+                {key === "total" && <FiBarChart2 className="text-blue-500" />}
+                {key === "new" && <FiUser className="text-green-500" />}
+                {key === "inProgress" && <FiLoader className="text-yellow-500" />}
+                {key === "closed" && <FiCheckCircle className="text-purple-500" />}
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* Priority Chart */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-800">Lead Priorities</h2>
-          <FiPieChart className="text-gray-400 text-xl" />
-        </div>
-        <div className="space-y-3">
+      {/* Priority Section */}
+      <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+        <h2 className="text-lg font-semibold text-gray-800 mb-3">Priorities</h2>
+        <div className="space-y-2">
           {[
             { name: "High", value: priorityCounts.high || 0, color: "#EF4444" },
             { name: "Medium", value: priorityCounts.medium || 0, color: "#F59E0B" },
             { name: "Low", value: priorityCounts.low || 0, color: "#10B981" },
           ].map((item) => (
-            <div key={item.name} className="flex items-center justify-between">
+            <div key={item.name} className="flex justify-between items-center text-sm">
               <div className="flex items-center">
-                <div className="w-4 h-4 rounded-full mr-3" style={{ backgroundColor: item.color }} />
-                <span className="text-gray-800">{item.name}</span>
+                <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: item.color }}></div>
+                <span>{item.name}</span>
               </div>
-              <span className="font-medium text-lg">{item.value}</span>
+              <span className="font-medium">{item.value}</span>
             </div>
           ))}
         </div>
-        <div className="mt-4 pt-4 border-t border-gray-100">
-          <div className="flex items-center justify-between">
+        <div className="mt-4 pt-3 border-t border-gray-100 text-sm">
+          <div className="flex justify-between">
             <span className="text-gray-600">Conversion Rate</span>
-            <span className="font-semibold text-blue-600 text-lg">{conversionRate}%</span>
+            <span className="font-semibold text-blue-600">{conversionRate}%</span>
           </div>
         </div>
       </div>
 
-      {/* Lists */}
+      {/* Collapsible Lists */}
       <CollapsibleSection
-        title="Upcoming Due Leads"
+        title="Upcoming Leads"
+        icon={<FiClock className="text-blue-500" />}
         isExpanded={expandedSection === "upcoming"}
         onToggle={() => toggleSection("upcoming")}
-        icon={<FiClock className="text-blue-500 text-xl" />}
       >
         <LeadList leads={upcomingLeads} emptyMessage="No upcoming leads" />
       </CollapsibleSection>
 
       <CollapsibleSection
         title="Overdue Leads"
+        icon={<FiAlertCircle className="text-red-500" />}
         isExpanded={expandedSection === "overdue"}
         onToggle={() => toggleSection("overdue")}
-        icon={<FiAlertCircle className="text-red-500 text-xl" />}
       >
         <LeadList leads={overdueLeads} emptyMessage="No overdue leads" />
       </CollapsibleSection>
 
       <CollapsibleSection
-        title="Recent Leads (in range)"
+        title="Recent Leads"
+        icon={<FiTrendingUp className="text-green-500" />}
         isExpanded={expandedSection === "recent"}
         onToggle={() => toggleSection("recent")}
-        icon={<FiTrendingUp className="text-green-500 text-xl" />}
       >
         <LeadList leads={recentLeads} emptyMessage="No recent leads" />
       </CollapsibleSection>
 
       <CollapsibleSection
-        title="Recently Closed (in range)"
+        title="Recently Closed"
+        icon={<FiCheckCircle className="text-purple-500" />}
         isExpanded={expandedSection === "closed"}
         onToggle={() => toggleSection("closed")}
-        icon={<FiCheckCircle className="text-purple-500 text-xl" />}
       >
         <LeadList leads={recentlyClosedLeads} emptyMessage="No closed leads" />
       </CollapsibleSection>
@@ -375,83 +420,54 @@ const Analytics = () => {
   );
 };
 
-// --- Reusable Components ---
+// --- Reusable Components (Mobile-Friendly) ---
 
 const CollapsibleSection = ({ title, isExpanded, onToggle, icon, children }) => (
   <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-    <button onClick={onToggle} className="w-full flex items-center justify-between p-5 text-left">
-      <div className="flex items-center">
-        <h2 className="font-semibold text-lg text-gray-800">{title}</h2>
-      </div>
-      <div className="flex items-center">
+    <button
+      onClick={onToggle}
+      className="w-full flex items-center justify-between p-4 text-left"
+    >
+      <div className="flex items-center gap-2">
         {icon}
-        {isExpanded ? (
-          <FiChevronUp className="ml-3 text-gray-400 text-xl" />
-        ) : (
-          <FiChevronDown className="ml-3 text-gray-400 text-xl" />
-        )}
+        <h2 className="font-semibold text-gray-800 text-sm sm:text-base">{title}</h2>
       </div>
+      {isExpanded ? (
+        <FiChevronUp className="text-gray-400" />
+      ) : (
+        <FiChevronDown className="text-gray-400" />
+      )}
     </button>
-    {isExpanded && <div className="p-5 border-t border-gray-100">{children}</div>}
+    {isExpanded && <div className="p-4 border-t border-gray-100">{children}</div>}
   </div>
 );
 
-const KPICard = ({ title, value, icon, trend, large }) => {
-  const trends = {
-    total: { value: "+12%", color: "text-green-500" },
-    new: { value: "+5%", color: "text-green-500" },
-    inProgress: { value: "-2%", color: "text-red-500" },
-    closed: { value: "+8%", color: "text-green-500" },
-  };
-
-  return (
-    <div className={`bg-white ${large ? "p-5" : "p-4"} rounded-xl shadow-sm border border-gray-100 h-full`}>
-      <div className="flex justify-between items-start h-full">
-        <div>
-          <p className={`${large ? "text-sm" : "text-xs"} font-medium text-gray-500`}>{title}</p>
-          <h3 className={`${large ? "text-3xl" : "text-2xl"} font-bold mt-2`}>{value}</h3>
-          <div className="mt-3 flex items-center">
-            <span className={`text-sm font-medium ${trends[trend]?.color || "text-gray-500"}`}>
-              {trends[trend]?.value || "0%"}
-            </span>
-            <span className="text-gray-500 text-xs ml-1">vs last week</span>
-          </div>
-        </div>
-        <div className={`${large ? "p-3" : "p-2"} rounded-lg bg-gray-50 self-center`}>{icon}</div>
-      </div>
-    </div>
-  );
-};
-
 const LeadList = ({ leads, emptyMessage }) => (
   !leads || leads.length === 0 ? (
-    <div className="text-center py-6">
-      <p className="text-gray-400">{emptyMessage}</p>
+    <div className="text-center py-4">
+      <p className="text-gray-400 text-sm">{emptyMessage}</p>
     </div>
   ) : (
-    <ul className="space-y-3">
+    <ul className="space-y-2">
       {leads.map((lead) => (
-        <li key={lead.id} className="p-4 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors">
-          <div className="flex justify-between items-start">
-            <div className="pr-3">
-              <p className="font-medium text-gray-800">{lead.title || "Untitled Lead"}</p>
-              <p className="text-sm text-gray-600 mt-1">
-                <span className="font-medium">{lead.customerName || "Unknown Customer"}</span>
-              </p>
+        <li key={lead.id} className="p-3 rounded-lg border border-gray-100 bg-white">
+          <div className="flex flex-col sm:flex-row sm:justify-between gap-2">
+            <div>
+              <p className="font-medium text-gray-800 text-sm">{lead.title || "Untitled"}</p>
+              <p className="text-xs text-gray-600">{lead.customerName || "Unknown"}</p>
               {lead.closedByUser && (
                 <p className="text-xs text-gray-500 mt-1">
-                  Closed by: <span className="font-medium">{lead.closedByUser.name}</span>
-                  {lead.closedAt && ` on ${new Date(lead.closedAt).toLocaleDateString()}`}
+                  Closed by: {lead.closedByUser.name} on {new Date(lead.closedAt).toLocaleDateString()}
                 </p>
               )}
             </div>
-            <div className="flex flex-col items-end space-y-2">
+            <div className="flex flex-col items-end gap-1">
               <PriorityBadge priority={lead.priority} />
               <StatusBadge status={lead.status} />
             </div>
           </div>
-          <div className="flex items-center mt-3 text-sm text-gray-500">
-            <FiCalendar className="mr-2" />
+          <div className="flex items-center mt-2 text-xs text-gray-500">
+            <FiCalendar className="mr-1" size={14} />
             <span>Due: {lead.dueDate ? new Date(lead.dueDate).toLocaleDateString() : "N/A"}</span>
           </div>
         </li>
@@ -467,8 +483,8 @@ const PriorityBadge = ({ priority }) => {
     low: "bg-green-100 text-green-800",
   };
   return (
-    <span className={`text-xs px-3 py-1.5 rounded-full ${styles[priority?.toLowerCase()] || "bg-gray-100 text-gray-800"}`}>
-      {priority || "Unknown"}
+    <span className={`text-xs px-2 py-1 rounded-full ${styles[priority?.toLowerCase()] || "bg-gray-100 text-gray-800"}`}>
+      {priority || "N/A"}
     </span>
   );
 };
@@ -481,8 +497,8 @@ const StatusBadge = ({ status }) => {
     overdue: "bg-red-100 text-red-800",
   };
   return (
-    <span className={`text-xs px-3 py-1.5 rounded-full ${styles[status?.toLowerCase()] || "bg-gray-100 text-gray-800"}`}>
-      {status || "Unknown"}
+    <span className={`text-xs px-2 py-1 rounded-full ${styles[status?.toLowerCase()] || "bg-gray-100 text-gray-800"}`}>
+      {status || "N/A"}
     </span>
   );
 };
