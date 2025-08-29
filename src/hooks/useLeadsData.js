@@ -85,7 +85,7 @@ const useLeadsData = () => {
       setEditingLead(null);
       return;
     }
-    setEditingLead(lead.id);
+    setEditingLead(lead);
     if (isMobile) {
       setFormData({
         title: lead.title || "",
