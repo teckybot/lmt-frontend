@@ -23,7 +23,7 @@ const LeadTable = ({ role }) => {
   const fetchLeads = async () => {
     try {
       setLoading(true);
-      const url = role === 'employee' ? '/leads/my-leads' : '/leads';
+      const url = (role === 'employee' || role === 'admin') ? '/leads/my-leads' : '/leads';
       const res = await api.get(url);
       setLeads(res.data);
     } catch (err) {
@@ -86,14 +86,14 @@ const LeadTable = ({ role }) => {
         <div className="p-4 space-y-3">
           <div className="flex justify-between items-start">
             <div className="flex-1">
-              <h3 className="font-semibold text-gray-900 text-lg mb-1">{lead.title}</h3>
+              <h3 className="font-semibold text-gray-900 text-lg mb-1">{lead.source}</h3>
               <p className="text-gray-600 text-sm">{lead.customerName}</p>
             </div>
             {(role === 'admin' || role === 'super admin') && (
-              <Button 
-                type="primary" 
-                size="small" 
-                icon={<FiUserPlus className="text-xs" />} 
+              <Button
+                type="primary"
+                size="small"
+                icon={<FiUserPlus className="text-xs" />}
                 onClick={() => handleAssignClick(lead)}
                 className="bg-indigo-600 hover:bg-indigo-700 border-0 shadow-sm"
               >
@@ -101,13 +101,13 @@ const LeadTable = ({ role }) => {
               </Button>
             )}
           </div>
-          
+
           <div className="flex items-center justify-between">
             <Tag color={statusColors[lead.status] || 'blue'} className="rounded-full px-3 py-1 text-xs font-medium">
               {lead.status?.charAt(0).toUpperCase() + lead.status?.slice(1)}
             </Tag>
           </div>
-          
+
           {lead.assignees && lead.assignees.length > 0 && (
             <div className="bg-gray-50 p-3 rounded-lg">
               <p className="text-xs text-gray-500 font-medium mb-2">ASSIGNED TO</p>
@@ -120,7 +120,7 @@ const LeadTable = ({ role }) => {
               </div>
             </div>
           )}
-          
+
           {lead.assignedByNames && lead.assignedByNames.length > 0 && (
             <div className="bg-gray-50 p-3 rounded-lg">
               <p className="text-xs text-gray-500 font-medium mb-2">ASSIGNED BY</p>
@@ -139,33 +139,33 @@ const LeadTable = ({ role }) => {
   };
 
   const columns = [
-    { 
-      title: 'Title', 
-      dataIndex: 'title', 
-      key: 'title',
+    {
+      title: 'Service',
+      dataIndex: 'source',
+      key: 'source',
       render: (text) => <span className="font-medium text-gray-900">{text}</span>,
-      responsive: ['md'] 
+      responsive: ['md']
     },
-    { 
-      title: 'Customer', 
-      dataIndex: 'customerName', 
+    {
+      title: 'Customer',
+      dataIndex: 'customerName',
       key: 'customerName',
       render: (text) => <span className="text-gray-700">{text}</span>,
-      responsive: ['md'] 
+      responsive: ['md']
     },
-    { 
-      title: 'Status', 
-      dataIndex: 'status', 
+    {
+      title: 'Status',
+      dataIndex: 'status',
       key: 'status',
       render: (status) => (
-        <Tag 
-          color={statusColors[status] || 'blue'} 
+        <Tag
+          color={statusColors[status] || 'blue'}
           className="rounded-full px-3 py-1 text-xs font-medium capitalize"
         >
           {status}
         </Tag>
       ),
-      responsive: ['md'] 
+      responsive: ['md']
     },
     {
       title: 'Assigned To',
@@ -173,9 +173,9 @@ const LeadTable = ({ role }) => {
       render: (_, record) => (
         <div className="flex flex-wrap gap-1">
           {record.assignees?.map(user => (
-            <Tag 
-              key={user.id} 
-              color="blue" 
+            <Tag
+              key={user.id}
+              color="blue"
               className="rounded-full px-2 py-1 text-xs bg-blue-50 border-0"
             >
               {user.name}
@@ -183,7 +183,7 @@ const LeadTable = ({ role }) => {
           ))}
         </div>
       ),
-      responsive: ['md'] 
+      responsive: ['md']
     },
     {
       title: 'Assigned By',
@@ -191,9 +191,9 @@ const LeadTable = ({ role }) => {
       render: (_, record) => (
         <div className="flex flex-wrap gap-1">
           {record.assignedByNames?.length ? record.assignedByNames.map((n, i) => (
-            <Tag 
-              key={i} 
-              color="purple" 
+            <Tag
+              key={i}
+              color="purple"
               className="rounded-full px-2 py-1 text-xs bg-purple-50 border-0"
             >
               {n}
@@ -203,7 +203,7 @@ const LeadTable = ({ role }) => {
           )}
         </div>
       ),
-      responsive: ['md'] 
+      responsive: ['md']
     },
     ...(role === 'employee' ? [] : [{
       title: 'Actions',
@@ -212,9 +212,9 @@ const LeadTable = ({ role }) => {
       render: (_, record) => (
         <div className="flex justify-center">
           {(role === 'admin' || role === 'super admin') && (
-            <Button 
+            <Button
               type="primary"
-              icon={<FiUserPlus className="text-sm" />} 
+              icon={<FiUserPlus className="text-sm" />}
               onClick={() => handleAssignClick(record)}
               size="small"
               className="bg-indigo-600 hover:bg-indigo-700 border-0 shadow-sm"
@@ -224,7 +224,7 @@ const LeadTable = ({ role }) => {
           )}
         </div>
       ),
-      responsive: ['md'] 
+      responsive: ['md']
     }]),
   ];
 
@@ -236,12 +236,12 @@ const LeadTable = ({ role }) => {
           <h2 className="text-xl font-bold text-gray-900"> Lead Assignment Dashboard </h2>
           <p className="text-gray-500 text-sm"> Assign Leads to a Right Persion </p>
         </div>
-        
+
         {role === 'super admin' && (
           <div className="flex gap-2">
             {selectedRows.length > 0 && (
-              <Button 
-                icon={<FiUsers className="text-sm" />} 
+              <Button
+                icon={<FiUsers className="text-sm" />}
                 onClick={handleBulkAssignClick}
                 type="primary"
                 className="bg-indigo-600 hover:bg-indigo-700 border-0 shadow-sm flex items-center"
@@ -249,8 +249,8 @@ const LeadTable = ({ role }) => {
                 Bulk Assign ({selectedRows.length})
               </Button>
             )}
-            <Button 
-              icon={<FiPlus className="text-sm" />} 
+            <Button
+              icon={<FiPlus className="text-sm" />}
               onClick={() => setBulkModalVisible(true)}
               type="default"
               className="border-gray-300 shadow-sm flex items-center"
@@ -277,16 +277,16 @@ const LeadTable = ({ role }) => {
               {renderMobileLeadCards()}
             </div>
           )}
-          
+
           {/* Desktop View */}
           <div className="hidden md:block">
-            <Table 
-              columns={columns} 
-              dataSource={leads} 
-              rowKey="id" 
+            <Table
+              columns={columns}
+              dataSource={leads}
+              rowKey="id"
               loading={loading}
               rowSelection={role === 'super admin' ? rowSelection : null}
-              pagination={{ 
+              pagination={{
                 pageSize: 10,
                 showSizeChanger: true,
                 showQuickJumper: true,
@@ -318,10 +318,10 @@ const LeadTable = ({ role }) => {
           visible={bulkModalVisible}
           role={role}
           selectedLeads={selectedRows}
-          onClose={() => { 
-            setBulkModalVisible(false); 
+          onClose={() => {
+            setBulkModalVisible(false);
             setSelectedRows([]);
-            fetchLeads(); 
+            fetchLeads();
           }}
         />
       )}
