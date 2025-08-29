@@ -82,6 +82,15 @@ const LeadsTable = () => {
         }
     };
 
+    const toSourceArray = (sourceValue) => {
+        if (Array.isArray(sourceValue)) return sourceValue;
+        if (!sourceValue) return [];
+        return String(sourceValue)
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean);
+    };
+
     const filteredLeads = useMemo(() => {
         const query = searchTerm.toLowerCase();
         return leads.filter((lead) => {
@@ -93,7 +102,8 @@ const LeadsTable = () => {
                 (lead.source || "").toLowerCase().includes(query);
             const matchesPriority = priorityFilter === "All" || lead.priority === priorityFilter;
             const matchesStatus = statusFilter === "All" || lead.status === statusFilter;
-            const matchesSource = sourceFilter === "All" || lead.source === sourceFilter;
+            const leadSources = toSourceArray(lead.source);
+            const matchesSource = sourceFilter === "All" || leadSources.some((s) => s === sourceFilter);
             return matchesSearch && matchesPriority && matchesStatus && matchesSource;
         });
     }, [leads, searchTerm, priorityFilter, statusFilter, sourceFilter]);

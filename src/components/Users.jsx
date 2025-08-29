@@ -376,9 +376,7 @@ const UserManagement = () => {
             ))}
           </div>
         )}
-        <div className="mt-4 text-xs text-gray-500">
-          Suggested extras we can show here: lead count by status, last activity time, number of open vs closed leads, and average lead age for this user.
-        </div>
+        
       </Modal>
     </div>
   );
