@@ -83,12 +83,14 @@ const LeadsTable = () => {
     };
 
     const filteredLeads = useMemo(() => {
+        const query = searchTerm.toLowerCase();
         return leads.filter((lead) => {
             const matchesSearch =
-                (lead.title || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (lead.customerName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (lead.email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (lead.phone || "").toLowerCase().includes(searchTerm.toLowerCase());
+                (lead.title || "").toLowerCase().includes(query) ||
+                (lead.customerName || "").toLowerCase().includes(query) ||
+                (lead.email || "").toLowerCase().includes(query) ||
+                (lead.phone || "").toLowerCase().includes(query) ||
+                (lead.source || "").toLowerCase().includes(query);
             const matchesPriority = priorityFilter === "All" || lead.priority === priorityFilter;
             const matchesStatus = statusFilter === "All" || lead.status === statusFilter;
             const matchesSource = sourceFilter === "All" || lead.source === sourceFilter;

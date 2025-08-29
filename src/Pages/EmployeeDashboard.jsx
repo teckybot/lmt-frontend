@@ -24,7 +24,7 @@ const EmployeeDashboard = () => {
       setError(err.response?.data?.message || "Failed to load leads");
       if (err.response?.status === 401) {
         localStorage.removeItem("token");
-        navigate("/login");
+        navigate("/");
       }
     } finally {
       setIsLoading(false);

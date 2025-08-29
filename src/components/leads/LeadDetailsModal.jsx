@@ -83,7 +83,7 @@ const LeadDetailsModal = ({ lead, role, onClose, onUpdate, loading }) => {
             open={true}
             onCancel={onClose}
             footer={null}
-            width={750}
+            width={800}
             destroyOnClose
             bodyStyle={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}
         >
@@ -91,15 +91,15 @@ const LeadDetailsModal = ({ lead, role, onClose, onUpdate, loading }) => {
                 form={form}
                 layout="vertical"
                 onFinish={handleFormSubmit}
-                className="mt-4"
+                className="mt-2"
                 disabled={isEmployee}
             >
                 {/* Top Section */}
-                <div className="flex items-center justify-between gap-4 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <div className="flex-1 flex flex-col items-center">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex flex-col items-start">
                         <span className="text-sm font-medium text-gray-600">Status</span>
-                        <Form.Item name="status" className="mb-0 mt-1">
-                            <Select bordered={false} style={{ width: 120 }}>
+                        <Form.Item name="status" className="mb-0 mt-1" style={{ width: '100%' }}>
+                            <Select bordered={false}>
                                 {STATUS_OPTIONS.map((status) => (
                                     <Option key={status} value={status}>
                                         <Tag color={getStatusColor(status)}>{status}</Tag>
@@ -108,20 +108,47 @@ const LeadDetailsModal = ({ lead, role, onClose, onUpdate, loading }) => {
                             </Select>
                         </Form.Item>
                     </div>
-                    <div className="flex-1 flex flex-col items-center">
+
+                    <div className="flex flex-col items-start">
+                        <span className="text-sm font-medium text-gray-600">Priority</span>
+                        <Form.Item name="priority" className="mb-0 mt-1" style={{ width: '100%' }}>
+                            <Select bordered={false} placeholder="Select priority">
+                                {PRIORITY_OPTIONS.map((p) => (
+                                    <Option key={p} value={p}>{p}</Option>
+                                ))}
+                            </Select>
+                        </Form.Item>
+                    </div>
+
+                    <div className="flex flex-col items-start">
+                        <span className="text-sm font-medium text-gray-600">Due Date</span>
+                        <Form.Item name="dueDate" className="mb-0 mt-1" style={{ width: '100%' }}>
+                            <DatePicker
+                                bordered={false}
+                                format="DD-MM-YYYY"
+                                style={{ width: '100%' }}
+                                disabledDate={disabledDate}
+                            />
+                        </Form.Item>
+                    </div>
+
+                    <div className="flex flex-col items-start">
                         <span className="text-sm font-medium text-gray-600">Assigned to</span>
                         <div
-                            className={`flex items-center gap-1 mt-1 ${isEmployee ? "" : "cursor-pointer hover:underline"}`}
+                            className={`mt-1 flex items-center gap-2 flex-wrap ${isEmployee ? "" : "cursor-pointer hover:underline"}`}
                             onClick={() => { if (!isEmployee) setIsAssigneeSelectorVisible(true); }}
                         >
                             {lead.assignees.length > 0 ? (
                                 lead.assignees.slice(0, 3).map((assignee) => (
-                                    <Avatar
-                                        key={assignee.id}
-                                        src={assignee.avatar} 
-                                        size="small"
-                                        alt={assignee.name}
-                                    />))
+                                    <div key={assignee.id} className="flex flex-col items-center mr-1">
+                                        <Avatar
+                                            src={assignee.avatar}
+                                            size="small"
+                                            alt={assignee.name}
+                                        />
+                                        <span className="text-[10px] text-gray-600 mt-1 max-w-[70px] truncate">{assignee.name}</span>
+                                    </div>
+                                ))
                             ) : (
                                 <span className="text-sm font-semibold text-gray-400">Assign</span>
                             )}
@@ -130,39 +157,26 @@ const LeadDetailsModal = ({ lead, role, onClose, onUpdate, loading }) => {
                             )}
                         </div>
                     </div>
-                    <div className="flex-1 flex flex-col items-center">
-                        <span className="text-sm font-medium text-gray-600">Due Date</span>
-                        <Form.Item name="dueDate" className="mb-0 mt-1">
-                            <DatePicker
-                                bordered={false}
-                                format="YYYY-MM-DD"
-                                style={{ width: 120 }}
-                                disabledDate={disabledDate}
-                            />
-                        </Form.Item>
-                    </div>
                 </div>
 
                 {/* Middle Section: Description and Details */}
                 <div className="space-y-6">
-                    {/* CORRECTED: Non-editable Description Section */}
                     <div>
                         <h3 className="font-semibold text-lg text-gray-800 flex items-center gap-2 mb-2">
                             <FiList className="text-gray-600" /> Description
                         </h3>
                         <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-2">
                             <div className="flex items-center gap-2">
-                                <span className="font-medium text-gray-700">Action:</span>
+                                <span className="font-medium text-gray-700">FAQ Type:</span>
                                 <span className="text-gray-900">{lead.description?.faqType || "N/A"}</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="font-medium text-gray-700">Action Details:</span>
+                                <span className="font-medium text-gray-700">Variant:</span>
                                 <span className="text-gray-900">{lead.description?.variant || "N/A"}</span>
                             </div>
                         </div>
                     </div>
 
-                    {/* CORRECTED: Details Section */}
                     <div>
                         <h3 className="font-semibold text-lg text-gray-800 flex items-center gap-2 mb-2">
                             <FiList className="text-gray-600" /> Details
@@ -184,14 +198,6 @@ const LeadDetailsModal = ({ lead, role, onClose, onUpdate, loading }) => {
                                     ))}
                                 </Select>
                             </Form.Item>
-                            <Form.Item label="Priority" name="priority" rules={[{ required: true }]}>
-                                <Select placeholder="Select priority">
-                                    {PRIORITY_OPTIONS.map((p) => (
-                                        <Option key={p} value={p}>{p}</Option>
-                                    ))}
-                                </Select>
-                            </Form.Item>
-
                             <Form.Item label="State" name="state">
                                 <Select
                                     placeholder="Select State"
@@ -205,7 +211,6 @@ const LeadDetailsModal = ({ lead, role, onClose, onUpdate, loading }) => {
                                     ))}
                                 </Select>
                             </Form.Item>
-
                             <Form.Item label="District" name="district">
                                 <Select placeholder="Select District" disabled={!selectedState}>
                                     {selectedState && Object.keys(stateDistrictMap[selectedState]?.districts || {}).map(district => (
@@ -213,7 +218,6 @@ const LeadDetailsModal = ({ lead, role, onClose, onUpdate, loading }) => {
                                     ))}
                                 </Select>
                             </Form.Item>
-
                             <Form.Item label="Location" name="location">
                                 <Input placeholder="Location" />
                             </Form.Item>

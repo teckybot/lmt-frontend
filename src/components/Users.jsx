@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Table, Button, Modal, Form, Input, Select, message, Popconfirm } from "antd";
+import { Table, Button, Modal, Form, Input, Select, message, Popconfirm, Tag } from "antd";
 import { FiUser, FiMail, FiLock, FiPhone, FiUserCheck, FiUserPlus, FiEdit, FiTrash2, FiSearch } from "react-icons/fi";
 import api from "../utils/axiosInstance";
 import Teckybot from "../Data/Teckybot.png";
@@ -16,6 +16,12 @@ const UserManagement = () => {
   const [pageSize, setPageSize] = useState(10);
 
   const [form] = Form.useForm();
+
+  // New state for user leads modal
+  const [userLeadsVisible, setUserLeadsVisible] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUserLeads, setSelectedUserLeads] = useState([]);
+  const [userLeadsLoading, setUserLeadsLoading] = useState(false);
 
   // Fetch Users
   const fetchUsers = async () => {
@@ -118,7 +124,7 @@ const UserManagement = () => {
           <Button
             type="link"
             icon={<FiEdit className="text-lg" />}
-            onClick={() => openModal(record)}
+            onClick={(e) => { e.stopPropagation(); openModal(record); }}
             className="text-gray-900 hover:text-gray-900 p-0"
           />
           <Popconfirm
@@ -133,6 +139,7 @@ const UserManagement = () => {
               danger
               icon={<FiTrash2 className="text-lg" />}
               className="text-red-600 hover:text-red-600 p-0"
+              onClick={(e) => e.stopPropagation()}
             />
           </Popconfirm>
         </div>
@@ -150,6 +157,23 @@ const UserManagement = () => {
       user.role?.toLowerCase().includes(search)
     );
   });
+
+  const openUserLeadsModal = async (user) => {
+    setSelectedUser(user);
+    setUserLeadsVisible(true);
+    setUserLeadsLoading(true);
+    try {
+      // Fetch leads assigned to this user (server already supports filtering my-leads)
+      // We fetch all leads and filter by assignee id client-side for now
+      const res = await api.get('/leads');
+      const leads = res.data.filter((lead) => lead.assignees?.some(a => a.id === user.id));
+      setSelectedUserLeads(leads);
+    } catch (err) {
+      message.error('Failed to fetch user leads');
+    } finally {
+      setUserLeadsLoading(false);
+    }
+  };
 
   return (
     <div className="p-4 bg-white rounded-xl shadow-md lg:mt-5 mt-28">
@@ -216,6 +240,7 @@ const UserManagement = () => {
             dataSource={filteredUsers}
             rowKey="id"
             bordered
+            onRow={(record) => ({ onClick: () => openUserLeadsModal(record) })}
             pagination={{
               current: currentPage,
               pageSize: pageSize,
@@ -232,11 +257,12 @@ const UserManagement = () => {
             }}
             scroll={{ x: true }}
             size="middle"
-            className="custom-table"
+            className="custom-table hover:cursor-pointer"
           />
         </div>
       )}
 
+      {/* Add/Edit User Modal */}
       <Modal
         title={editingUser ? "Edit User" : "Add User"}
         open={modalVisible}
@@ -313,6 +339,46 @@ const UserManagement = () => {
             </Select>
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* User Leads Modal */}
+      <Modal
+        title={selectedUser ? `Leads assigned to ${selectedUser.name}` : 'User Leads'}
+        open={userLeadsVisible}
+        onCancel={() => { setUserLeadsVisible(false); setSelectedUser(null); setSelectedUserLeads([]); }}
+        footer={null}
+        width={800}
+      >
+        {userLeadsLoading ? (
+          <div className="flex items-center justify-center h-40">
+            <FiLoader className="animate-spin text-2xl text-blue-500 mr-2" />
+            <span>Loading leads...</span>
+          </div>
+        ) : selectedUserLeads.length === 0 ? (
+          <div className="text-center text-gray-500 py-8">No leads assigned.</div>
+        ) : (
+          <div className="space-y-3">
+            {selectedUserLeads.map((lead) => (
+              <div key={lead.id} className="border rounded-lg p-3 bg-gray-50">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium text-gray-900">{lead.source} - {lead.customerName}</div>
+                    <div className="text-xs text-gray-500">{lead.email} • {lead.phone}</div>
+                  </div>
+                  <Tag color="geekblue" className="capitalize">{lead.status}</Tag>
+                </div>
+                <div className="mt-2 text-xs text-gray-600">
+                  <span className="mr-3"><strong>Priority:</strong> {lead.priority || 'N/A'}</span>
+                  <span className="mr-3"><strong>Due:</strong> {lead.dueDate ? new Date(lead.dueDate).toLocaleDateString('en-GB') : 'N/A'}</span>
+                  <span className="mr-3"><strong>Assigned By:</strong> {lead.assignedByNames?.join(', ') || 'N/A'}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="mt-4 text-xs text-gray-500">
+          Suggested extras we can show here: lead count by status, last activity time, number of open vs closed leads, and average lead age for this user.
+        </div>
       </Modal>
     </div>
   );

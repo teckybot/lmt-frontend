@@ -62,15 +62,16 @@ const LeadTable = ({ role }) => {
     }
   };
 
-  // Status color mapping
+  // Status color mapping (updated)
   const statusColors = {
-    'new': 'blue',
-    'contacted': 'purple',
-    'qualified': 'cyan',
-    'proposal': 'orange',
-    'negotiation': 'gold',
-    'closed': 'green',
-    'lost': 'red'
+    'New': 'geekblue',
+    'In Progress': 'gold',
+    'Closed': 'green',
+    'Contacted': 'purple',
+    'Qualified': 'cyan',
+    'Proposal': 'orange',
+    'Negotiation': 'volcano',
+    'Lost': 'red'
   };
 
   // Mobile card view for leads
@@ -96,8 +97,8 @@ const LeadTable = ({ role }) => {
           </div>
 
           <div className="flex items-center justify-between">
-            <Tag color={statusColors[lead.status] || 'blue'} className="rounded-full px-3 py-1 text-xs font-medium">
-              {lead.status?.charAt(0).toUpperCase() + lead.status?.slice(1)}
+            <Tag color={statusColors[lead.status] || 'geekblue'} className="rounded-full px-3 py-1 text-xs font-medium">
+              {lead.status}
             </Tag>
           </div>
 
@@ -152,7 +153,7 @@ const LeadTable = ({ role }) => {
       key: 'status',
       render: (status) => (
         <Tag
-          color={statusColors[status] || 'blue'}
+          color={statusColors[status] || 'geekblue'}
           className="rounded-full px-3 py-1 text-xs font-medium capitalize"
         >
           {status}
