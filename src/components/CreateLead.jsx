@@ -417,8 +417,8 @@ const CreateLead = () => {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 bg-gray-50 rounded-3xl shadow-xl">
-      <div className="mb-4 text-center">
-        <div className="inline-flex flex-col items-center relative">
+      <div className="mb-4 text-center md:mt-0 mt-16">
+        <div className="inline-flex flex-col items-center relative ">
           <Title level={1} className="text-2xl md:text-3xl font-extrabold text-gray-900 mb-2 tracking-tight">
             Create New Lead
           </Title>

@@ -96,6 +96,8 @@ const LeadFilters = ({
           icon={<FiDownload className="mr-1" />}
           onClick={exportToExcel}
           className="bg-gradient-to-r from-gray-800 to-gray-700 
+            
+            md:ml-0 -ml-36
             border-0 
             hover:from-gray-900 hover:to-gray-800 
             focus:from-gray-900 focus:to-gray-800 

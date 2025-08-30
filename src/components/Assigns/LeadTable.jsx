@@ -204,9 +204,9 @@ const LeadTable = ({ role }) => {
   return (
     <div className="bg-gray-50 p-4 rounded-xl">
       {/* Header without bulk actions for super admin per requirement */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3 md:mt-0 mt-16">
         <div>
-          <h2 className="text-xl font-bold text-gray-900"> Lead Assignment Dashboard </h2>
+          <h2 className="text-xl font-bold text-gray-900"> Lead ToDo </h2>
           <p className="text-gray-500 text-sm"> View leads assigned to you </p>
         </div>
       </div>
