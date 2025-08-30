@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Table, Button, Modal, Form, Input, Select, message, Popconfirm, Tag } from "antd";
-import { FiUser, FiMail, FiLock, FiPhone, FiUserCheck, FiUserPlus, FiEdit, FiTrash2, FiSearch } from "react-icons/fi";
+import { FiUser, FiMail, FiLock, FiPhone, FiUserCheck, FiUserPlus, FiEdit, FiTrash2, FiSearch, FiLoader } from "react-icons/fi";
 import api from "../utils/axiosInstance";
 import Teckybot from "../Data/Teckybot.png";
-import { FiLoader } from "react-icons/fi";
+
 const { Option } = Select;
 
 const UserManagement = () => {
@@ -14,16 +14,23 @@ const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [currentUser, setCurrentUser] = useState(null);
 
-  const [form] = Form.useForm();
-
-  // New state for user leads modal
+  // Leads modal
   const [userLeadsVisible, setUserLeadsVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedUserLeads, setSelectedUserLeads] = useState([]);
   const [userLeadsLoading, setUserLeadsLoading] = useState(false);
 
-  // Fetch Users
+  const [form] = Form.useForm();
+
+  // Load current user and fetch users
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    setCurrentUser(storedUser);
+    fetchUsers();
+  }, []);
+
   const fetchUsers = async () => {
     try {
       setLoading(true);
@@ -36,41 +43,53 @@ const UserManagement = () => {
     }
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  // Open Add/Edit Modal
   const openModal = (user = null) => {
     setEditingUser(user);
     setModalVisible(true);
     if (user) {
-      form.setFieldsValue(user);
+      form.setFieldsValue({
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        password: undefined,
+      });
     } else {
       form.resetFields();
     }
   };
 
-  // Add or Update User
-  const handleSave = async (values) => {
+  // Update user info (name, email, role, phone)
+  const handleSave = async (userData) => {
     try {
       if (editingUser) {
-        // Update user
-        await api.put(`/users/${editingUser.id}`, values);
+        await api.put(`/users/${editingUser.id}`, userData);
         message.success("User updated successfully");
       } else {
-        // Create user
-        await api.post("/auth/register", values);
+        await api.post("/auth/register", userData);
         message.success("User added successfully");
       }
       setModalVisible(false);
       fetchUsers();
     } catch (err) {
-      message.error("Failed to save user");
+      message.error(err.response?.data?.error || "Failed to save user");
     }
   };
 
-  // Delete User
+  // Force reset password (only for super admin / admin)
+  const handleForceResetPassword = async (userId, newPassword) => {
+    try {
+      await api.post("/auth/force-reset-password", {
+        userId,
+        newPassword, // ← Sent in plain text (safe because HTTPS)
+      });
+      message.success("User password has been reset successfully");
+    } catch (err) {
+      message.error(err.response?.data?.error || "Failed to reset user password");
+    }
+  };
+
+  // Delete user
   const handleDelete = async (id) => {
     try {
       await api.delete(`/users/${id}`);
@@ -105,12 +124,13 @@ const UserManagement = () => {
       key: "role",
       render: (role) => (
         <span
-          className={`px-2 py-1 rounded text-xs font-medium ${role === "super admin"
-            ? "bg-red-100 text-red-600"
-            : role === "admin"
+          className={`px-2 py-1 rounded text-xs font-medium ${
+            role === "super admin"
+              ? "bg-red-100 text-red-600"
+              : role === "admin"
               ? "bg-blue-100 text-blue-600"
               : "bg-green-100 text-green-600"
-            }`}
+          }`}
         >
           {role}
         </span>
@@ -147,7 +167,7 @@ const UserManagement = () => {
     },
   ];
 
-  // Filtered users
+  // Filter users
   const filteredUsers = users.filter((user) => {
     const search = searchTerm.toLowerCase();
     return (
@@ -163,8 +183,6 @@ const UserManagement = () => {
     setUserLeadsVisible(true);
     setUserLeadsLoading(true);
     try {
-      // Fetch leads assigned to this user (server already supports filtering my-leads)
-      // We fetch all leads and filter by assignee id client-side for now
       const res = await api.get('/leads');
       const leads = res.data.filter((lead) => lead.assignees?.some(a => a.id === user.id));
       setSelectedUserLeads(leads);
@@ -180,34 +198,18 @@ const UserManagement = () => {
       <div className="flex flex-col gap-4 mb-4">
         <div className="flex items-center justify-between">
           <div>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">User Management</h1>
-          <p className="text-sm text-gray-500 -mt-3">
-            Manage Add, update, or remove users, user roles, and contact information.</p>
+            <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">User Management</h1>
+            <p className="text-sm text-gray-500 -mt-3">
+              Manage, add, update, or remove users, roles, and contact information.
+            </p>
           </div>
           <Button
             type="primary"
             icon={<FiUserPlus className="text-base" />}
             onClick={() => openModal()}
-            className="
-                bg-gradient-to-r from-gray-800 to-gray-900 
-                border-0 
-                hover:from-gray-900 hover:to-gray-800 
-                focus:from-gray-900 focus:to-gray-800 
-                active:from-gray-950 active:to-gray-900 
-                shadow-md hover:shadow-lg 
-                transition-all duration-200 
-                flex items-center justify-center 
-                rounded-lg 
-                px-4 py-2 
-                h-auto
-                font-medium
-                text-white
-              "
-            size="middle"
+            className="bg-gradient-to-r from-gray-800 to-gray-900 border-0 hover:from-gray-900 hover:to-gray-800 focus:from-gray-900 focus:to-gray-800 active:from-gray-950 active:to-gray-900 shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center rounded-lg px-4 py-2 h-auto font-medium text-white"
           >
-            <span className="flex items-center">
-              Add User
-            </span>
+            Add User
           </Button>
         </div>
 
@@ -219,8 +221,7 @@ const UserManagement = () => {
               placeholder="Search users..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900
-                    placeholder-gray-400 transition duration-200"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 placeholder-gray-400 transition duration-200"
             />
           </div>
         </div>
@@ -230,7 +231,7 @@ const UserManagement = () => {
         <div className="flex items-center justify-center h-64">
           <div className="flex flex-col items-center">
             <FiLoader className="animate-spin text-3xl text-blue-500 mb-2" />
-            <p className="text-gray-600">Loading analytics data...</p>
+            <p className="text-gray-600">Loading users...</p>
           </div>
         </div>
       ) : (
@@ -253,7 +254,6 @@ const UserManagement = () => {
               },
               responsive: true,
               showLessItems: true,
-              className: "px-2",
             }}
             scroll={{ x: true }}
             size="middle"
@@ -262,19 +262,16 @@ const UserManagement = () => {
         </div>
       )}
 
-      {/* Add/Edit User Modal */}
+      {/* Edit/Add User Modal */}
       <Modal
         title={editingUser ? "Edit User" : "Add User"}
         open={modalVisible}
         onCancel={() => setModalVisible(false)}
         onOk={() => form.submit()}
         okText={editingUser ? "Update" : "Create"}
-        okButtonProps={{
-          className: "bg-gray-900  hover:bg-gray-900  focus:bg-gray-900 "
-        }}
+        okButtonProps={{ className: "bg-gray-900 hover:bg-gray-800" }}
         cancelButtonProps={{ className: "" }}
         width={400}
-        className="user-modal"
         style={{ top: 120 }}
       >
         <div className="flex justify-center mb-4">
@@ -284,7 +281,17 @@ const UserManagement = () => {
         <Form
           form={form}
           layout="vertical"
-          onFinish={handleSave}
+          onFinish={(values) => {
+            const { password: newPassword, ...userData } = values;
+
+            // Save user data (name, email, etc.)
+            handleSave(userData);
+
+            // Only super admin can reset password
+            if (editingUser && newPassword && currentUser?.role === "super admin") {
+              handleForceResetPassword(editingUser.id, newPassword);
+            }
+          }}
         >
           <Form.Item
             name="name"
@@ -305,6 +312,27 @@ const UserManagement = () => {
             <Input prefix={<FiMail className="text-gray-400" />} className="focus:border-gray-900" />
           </Form.Item>
 
+          {/* Show only to super admin when editing */}
+          {editingUser && currentUser?.role === "super admin" && (
+            <>
+              <div className="text-xs text-blue-600 mb-1">
+                As super admin, you can reset this user's password.
+              </div>
+              <Form.Item
+                name="password"
+                label="Change Password"
+                rules={[{ min: 6, message: "Password must be at least 6 characters" }]}
+                extra="Leave blank to keep current password"
+              >
+                <Input.Password
+                  prefix={<FiLock className="text-gray-400" />}
+                  placeholder="Leave blank to keep current"
+                />
+              </Form.Item>
+            </>
+          )}
+
+          {/* Password required only when creating */}
           {!editingUser && (
             <Form.Item
               name="password"
@@ -328,11 +356,7 @@ const UserManagement = () => {
             label="Role"
             rules={[{ required: true, message: "Please select a role" }]}
           >
-            <Select
-              suffixIcon={<FiUserCheck className="text-gray-400" />}
-              className="focus:border-gray-900"
-              popupClassName="role-dropdown"
-            >
+            <Select suffixIcon={<FiUserCheck className="text-gray-400" />}>
               <Option value="employee">Employee</Option>
               <Option value="admin">Admin</Option>
               <Option value="super admin">Super Admin</Option>
@@ -343,9 +367,13 @@ const UserManagement = () => {
 
       {/* User Leads Modal */}
       <Modal
-        title={selectedUser ? `Leads assigned to ${selectedUser.name}` : 'User Leads'}
+        title={selectedUser ? `Leads Assigned to ${selectedUser.name}` : 'User Leads'}
         open={userLeadsVisible}
-        onCancel={() => { setUserLeadsVisible(false); setSelectedUser(null); setSelectedUserLeads([]); }}
+        onCancel={() => {
+          setUserLeadsVisible(false);
+          setSelectedUser(null);
+          setSelectedUserLeads([]);
+        }}
         footer={null}
         width={800}
       >
@@ -355,7 +383,7 @@ const UserManagement = () => {
             <span>Loading leads...</span>
           </div>
         ) : selectedUserLeads.length === 0 ? (
-          <div className="text-center text-gray-500 py-8">No leads assigned.</div>
+          <div className="text-center text-gray-500 py-8">No leads assigned to this user.</div>
         ) : (
           <div className="space-y-3">
             {selectedUserLeads.map((lead) => (
@@ -376,7 +404,6 @@ const UserManagement = () => {
             ))}
           </div>
         )}
-        
       </Modal>
     </div>
   );
