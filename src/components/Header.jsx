@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { FiUser, FiSearch, FiBell, FiX, FiLogOut, FiLock } from "react-icons/fi";
+import Teckybot from "../Data/Teckybot.png";
 import {
   Dropdown,
   Menu,
@@ -79,14 +80,14 @@ const ProfileDropdownMenu = ({ user, handleLogout, setActiveTab, onResetPassword
           <img
             src={user.avatar}
             alt="user avatar"
-            className="w-10 h-10 rounded-full border-2 border-blue-500/30 dark:border-blue-400/30 object-cover"
+            className="w-10 h-10 rounded-md  border-blue-500/30 dark:border-blue-400/30 object-cover"
           />
         ) : (
           <div className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 transition-colors duration-200">
             <FiUser className="text-gray-500 dark:text-gray-300 text-xl" />
           </div>
         )}
-        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
+        <div className="absolute -bottom-[3px] -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
       </div>
     </Dropdown>
   );
@@ -96,6 +97,7 @@ const ProfileDropdownMenu = ({ user, handleLogout, setActiveTab, onResetPassword
 const PasswordResetModal = ({ visible, onCancel, onOk, loading, form }) => {
   return (
     <Modal
+
       title="Reset Password"
       open={visible}
       onCancel={onCancel}
@@ -103,6 +105,7 @@ const PasswordResetModal = ({ visible, onCancel, onOk, loading, form }) => {
         <Button key="cancel" onClick={onCancel}>
           Cancel
         </Button>,
+
         <Button
           key="submit"
           type="primary"
@@ -116,10 +119,17 @@ const PasswordResetModal = ({ visible, onCancel, onOk, loading, form }) => {
             }
           }}
         >
+
           Reset Password
         </Button>,
+
       ]}
     >
+      <div className="flex justify-center mb-4">
+        <img src={Teckybot} alt="Teckybot Logo" className="h-10 object-contain" />
+      </div>
+
+
       <Form form={form} layout="vertical" requiredMark={false}>
         <Form.Item
           name="currentPassword"
@@ -191,7 +201,7 @@ const Header = ({ setActiveTab }) => {
         localStorage.removeItem('user');
         localStorage.removeItem('token');
         setUser(null);
-        window.location.href = '/login';
+        window.location.href = '/';
       }
     };
 
@@ -239,7 +249,7 @@ const Header = ({ setActiveTab }) => {
     } catch (error) {
       const errorMsg =
         error.response?.data?.error ||
-        error.response?.data?.message ||
+        error.response?.data?.message ||  
         'Failed to reset password';
       message.error(errorMsg);
       console.error('Password reset error:', error);
