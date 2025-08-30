@@ -52,7 +52,6 @@ const UserManagement = () => {
         email: user.email,
         phone: user.phone,
         role: user.role,
-        password: undefined,
       });
     } else {
       form.resetFields();
@@ -124,13 +123,12 @@ const UserManagement = () => {
       key: "role",
       render: (role) => (
         <span
-          className={`px-2 py-1 rounded text-xs font-medium ${
-            role === "super admin"
+          className={`px-2 py-1 rounded text-xs font-medium ${role === "super admin"
               ? "bg-red-100 text-red-600"
               : role === "admin"
-              ? "bg-blue-100 text-blue-600"
-              : "bg-green-100 text-green-600"
-          }`}
+                ? "bg-blue-100 text-blue-600"
+                : "bg-green-100 text-green-600"
+            }`}
         >
           {role}
         </span>
@@ -279,20 +277,24 @@ const UserManagement = () => {
         </div>
 
         <Form
-          form={form}
-          layout="vertical"
+        form={form}
+        layout="vertical"
           onFinish={(values) => {
-            const { password: newPassword, ...userData } = values;
+            if (editingUser) {
+              // Editing user
+              const { password: newPassword, ...userData } = values;
+              handleSave(userData);
 
-            // Save user data (name, email, etc.)
-            handleSave(userData);
-
-            // Only super admin can reset password
-            if (editingUser && newPassword && currentUser?.role === "super admin") {
-              handleForceResetPassword(editingUser.id, newPassword);
+              if (newPassword && currentUser?.role === "super admin") {
+                handleForceResetPassword(editingUser.id, newPassword);
+              }
+            } else {
+              // Creating user
+              handleSave(values); 
             }
           }}
         >
+
           <Form.Item
             name="name"
             label="Full Name"
