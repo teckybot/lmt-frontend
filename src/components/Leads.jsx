@@ -95,7 +95,7 @@ const LeadsTable = () => {
         const query = searchTerm.toLowerCase();
         return leads.filter((lead) => {
             const matchesSearch =
-                (lead.title || "").toLowerCase().includes(query) ||
+                // (lead.title || "").toLowerCase().includes(query) ||
                 (lead.customerName || "").toLowerCase().includes(query) ||
                 (lead.email || "").toLowerCase().includes(query) ||
                 (lead.phone || "").toLowerCase().includes(query) ||

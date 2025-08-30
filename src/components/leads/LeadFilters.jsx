@@ -39,7 +39,7 @@ const LeadFilters = ({
       sourceFilter !== "All";
 
     const dataToExport = filteredLeads.map((lead) => ({
-      Title: lead.title || "N/A",
+      // Title: lead.title || "N/A",
       Customer: lead.customerName || "N/A",
       Email: lead.email || "N/A",
       Phone: lead.phone || "N/A",
