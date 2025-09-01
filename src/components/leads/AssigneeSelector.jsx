@@ -3,7 +3,7 @@ import { Modal, Spin, Avatar, Input, List, Button, message, Tooltip } from "antd
 import { FiUser, FiSearch } from "react-icons/fi";
 import api from "../../utils/axiosInstance";
 
-const AssigneeSelector = ({ lead, visible, onClose, role }) => {
+const AssigneeSelector = ({ lead, visible, onClose, onAssign, role }) => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -46,6 +46,16 @@ const AssigneeSelector = ({ lead, visible, onClose, role }) => {
         try {
             setSaving(true);
             await api.post(`/assigns/${lead.id}/assign`, { assigneeIds: selectedIds });
+            
+            // Fetch updated assignments and call onAssign to update parent state
+            const { data: assignments } = await api.get(`/assigns/${lead.id}/assignments`);
+            const assignees = assignments.map(a => a.user);
+            
+            // Call the onAssign callback to update parent component state
+            if (onAssign) {
+                onAssign(assignees, assignments);
+            }
+            
             message.success("Lead assigned successfully");
             onClose();
         } catch (err) {

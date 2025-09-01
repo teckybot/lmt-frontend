@@ -50,13 +50,42 @@ const LeadTable = ({ role }) => {
     if (!selectedLead) return;
     try {
       setLoading(true);
+      console.log("ToDo: Sending update request with data:", updatedValues); // Debug log
+      
       const res = await api.put(`/leads/${selectedLead.id}`, updatedValues);
-      const updated = res.data;
-      setLeads(prev => prev.map(l => (l.id === updated.id ? updated : l)));
+      console.log("ToDo: Backend response:", res.data); // Debug log
+      
+      // Update the leads list with the updated lead data
+      setLeads(prevLeads => prevLeads.map(lead => {
+        if (lead.id === selectedLead.id) {
+          // Merge the updated values with the existing lead data
+          return {
+            ...lead,
+            ...updatedValues,
+            // Ensure we preserve the assignees and other complex fields
+            assignees: updatedValues.assignees || lead.assignees,
+            assignments: updatedValues.assignments || lead.assignments,
+            assignedByNames: updatedValues.assignedByNames || lead.assignedByNames,
+          };
+        }
+        return lead;
+      }));
+      
+      // Update the selectedLead state as well
+      setSelectedLead(prev => ({
+        ...prev,
+        ...updatedValues,
+        assignees: updatedValues.assignees || prev.assignees,
+        assignments: updatedValues.assignments || prev.assignments,
+        assignedByNames: updatedValues.assignedByNames || prev.assignedByNames,
+      }));
+      
       message.success('Lead updated successfully');
     } catch (err) {
-      console.error(err);
-      message.error('Failed to update lead');
+      console.error("ToDo: Error updating lead", err);
+      console.error("ToDo: Error response data:", err.response?.data); // Debug log
+      console.error("ToDo: Error response status:", err.response?.status); // Debug log
+      message.error(err.response?.data?.error || err.response?.data?.message || 'Failed to update lead');
     } finally {
       setLoading(false);
     }

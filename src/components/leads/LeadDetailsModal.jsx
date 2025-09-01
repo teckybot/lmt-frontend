@@ -204,12 +204,18 @@ const LeadDetailsModal = ({ lead, role, onClose, onUpdate, loading }) => {
         return current && current < dayjs().startOf('day');
     };
 
-    const handleAssignLead = async (assigneeIds) => {
+    const handleAssignLead = async (assignees, assignments) => {
         try {
-            await api.post(`/assigns/${lead.id}/assign`, { assigneeIds });
-            const { data: assignments } = await api.get(`/assigns/${lead.id}/assignments`);
-            const assignees = assignments.map(a => a.user);
-            onUpdate({ ...lead, assignees, assignments });
+            // Update the lead with new assignees and assignments
+            const updatedLead = {
+                ...lead,
+                assignees,
+                assignments,
+                assignedByNames: assignments.map(a => a.assignedByUser?.name).filter(Boolean),
+            };
+            
+            // Call onUpdate to update parent component state
+            await onUpdate(updatedLead);
             message.success("Lead assignment updated successfully!");
             setIsAssigneeSelectorVisible(false);
         } catch (err) {
@@ -248,9 +254,9 @@ const LeadDetailsModal = ({ lead, role, onClose, onUpdate, loading }) => {
         <Modal
             title={
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <FiEdit className="text-blue-500" />
-                        <span className="font-semibold text-gray-800">{lead.title || (isEmployee ? "View Lead" : "Edit Lead")}</span>
+                <div className="flex items-center gap-2">
+                    <FiEdit className="text-blue-500" />
+                    <span className="font-semibold text-gray-800">{lead.title || (isEmployee ? "View Lead" : "Edit Lead")}</span>
                     </div>
                     {!isEmployee && (
                         <Tooltip title="View/Edit Details">
@@ -276,11 +282,11 @@ const LeadDetailsModal = ({ lead, role, onClose, onUpdate, loading }) => {
             {!showDetails ? (
                 // Main Modal Content
                 <div className="mt-2">
-                    {/* Top Section */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-5 bg-white rounded-xl border border-gray-200">
-                        {/* Status */}
-                        <div className="flex flex-col items-center">
-                            <label className="text-sm font-medium text-gray-700 mb-1">Status</label>
+                {/* Top Section */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-5 bg-white rounded-xl border border-gray-200">
+                    {/* Status */}
+                    <div className="flex flex-col items-center">
+                        <label className="text-sm font-medium text-gray-700 mb-1">Status</label>
                             <div className="w-full">
                                 <Select 
                                     value={lead.status}
@@ -289,73 +295,73 @@ const LeadDetailsModal = ({ lead, role, onClose, onUpdate, loading }) => {
                                     onChange={handleStatusChange}
                                     disabled={isEmployee}
                                 >
-                                    {STATUS_OPTIONS.map((status) => (
-                                        <Option key={status} value={status}>
-                                            <Tag color={getStatusColor(status)}>{status}</Tag>
-                                        </Option>
-                                    ))}
-                                </Select>
+                                {STATUS_OPTIONS.map((status) => (
+                                    <Option key={status} value={status}>
+                                        <Tag color={getStatusColor(status)}>{status}</Tag>
+                                    </Option>
+                                ))}
+                            </Select>
                             </div>
-                        </div>
+                    </div>
 
-                        {/* Priority */}
-                        <div className="flex flex-col items-center">
-                            <label className="text-sm font-medium text-gray-700 mb-1">Priority</label>
+                    {/* Priority */}
+                    <div className="flex flex-col items-center">
+                        <label className="text-sm font-medium text-gray-700 mb-1">Priority</label>
                             <div className="w-full">
-                                <Select
+                            <Select
                                     value={lead.priority}
-                                    bordered={false}
-                                    placeholder="Select priority"
+                                bordered={false}
+                                placeholder="Select priority"
                                     className="rounded-lg bg-gray-50 px-3 py-2 w-full"
                                     onChange={handlePriorityChange}
                                     disabled={isEmployee}
-                                >
-                                    {PRIORITY_OPTIONS.map((p) => (
+                            >
+                                {PRIORITY_OPTIONS.map((p) => (
                                         <Option key={p} value={p}>
                                             <div className="flex items-center gap-2">
                                                 {getPriorityIcon(p)}
                                                 <span>{p}</span>
                                             </div>
                                         </Option>
-                                    ))}
-                                </Select>
+                                ))}
+                            </Select>
                             </div>
-                        </div>
+                    </div>
 
-                        {/* Start Date */}
-                        <div className="flex flex-col items-center">
-                            <label className="text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                    {/* Start Date */}
+                    <div className="flex flex-col items-center">
+                        <label className="text-sm font-medium text-gray-700 mb-1">Start Date</label>
                             <div className="text-black mt-1">{dayjs(lead.createdAt).format("MMM DD, YYYY")}</div>
-                        </div>
+                    </div>
 
-                        {/* Due Date */}
-                        <div className="flex flex-col items-center">
-                            <label className="text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                    {/* Due Date */}
+                    <div className="flex flex-col items-center">
+                        <label className="text-sm font-medium text-gray-700 mb-1">Due Date</label>
                             <div className="w-full">
-                                <DatePicker
+                            <DatePicker
                                     value={lead.dueDate ? dayjs(lead.dueDate) : null}
-                                    bordered={false}
-                                    format="DD-MM-YYYY"
-                                    className="rounded-lg bg-gray-50 w-full px-3 py-2"
-                                    disabledDate={disabledDate}
+                                bordered={false}
+                                format="DD-MM-YYYY"
+                                className="rounded-lg bg-gray-50 w-full px-3 py-2"
+                                disabledDate={disabledDate}
                                     onChange={handleDueDateChange}
                                     disabled={isEmployee}
-                                />
+                            />
                             </div>
-                        </div>
+                    </div>
 
-                        {/* Assigned to */}
-                        <div className="flex flex-col items-center md:col-span-2 lg:col-span-4">
-                            <label className="text-sm font-medium text-gray-700 mb-1">Assigned to</label>
+                    {/* Assigned to */}
+                    <div className="flex flex-col items-center md:col-span-2 lg:col-span-4">
+                        <label className="text-sm font-medium text-gray-700 mb-1">Assigned to</label>
                             <Tooltip title={getAssignedUsersTooltip()} placement="top">
-                                <div
-                                    className={`flex flex-wrap items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 ${!isEmployee ? "cursor-pointer hover:bg-gray-100" : ""
-                                        }`}
-                                    onClick={() => { if (!isEmployee) setIsAssigneeSelectorVisible(true); }}
-                                >
-                                    {lead.assignees.length > 0 ? (
-                                        lead.assignees.slice(0, 3).map((assignee) => (
-                                            <div key={assignee.id} className="flex flex-col items-center w-16">
+                        <div
+                            className={`flex flex-wrap items-center gap-3 p-2 rounded-lg border border-gray-200 bg-gray-50 ${!isEmployee ? "cursor-pointer hover:bg-gray-100" : ""
+                                }`}
+                            onClick={() => { if (!isEmployee) setIsAssigneeSelectorVisible(true); }}
+                        >
+                            {lead.assignees.length > 0 ? (
+                                lead.assignees.slice(0, 3).map((assignee) => (
+                                    <div key={assignee.id} className="flex flex-col items-center w-16">
                                                 <Avatar 
                                                     src={assignee.avatar} 
                                                     size="small" 
@@ -367,26 +373,26 @@ const LeadDetailsModal = ({ lead, role, onClose, onUpdate, loading }) => {
                                                 >
                                                     {!assignee.avatar && getInitials(assignee.name)}
                                                 </Avatar>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <span className="text-sm text-gray-400 font-semibold">Assign</span>
-                                    )}
-                                    {lead.assignees.length > 3 && (
-                                        <span className="text-xs text-gray-500">+{lead.assignees.length - 3}</span>
-                                    )}
-                                </div>
-                            </Tooltip>
+                                    </div>
+                                ))
+                            ) : (
+                                <span className="text-sm text-gray-400 font-semibold">Assign</span>
+                            )}
+                            {lead.assignees.length > 3 && (
+                                <span className="text-xs text-gray-500">+{lead.assignees.length - 3}</span>
+                            )}
                         </div>
+                            </Tooltip>
                     </div>
+                </div>
 
                     {/* Middle Section: Description */}
                     <div className="space-y-6 mt-6">
-                        <div>
+                    <div>
                             <div className="flex items-center justify-between mb-2">
                                 <h3 className="font-semibold text-lg text-gray-800 flex items-center gap-2">
-                                    <FiList className="text-gray-600" /> Description
-                                </h3>
+                            <FiList className="text-gray-600" /> Description
+                        </h3>
                                 {!isEmployee && (
                                     <Button
                                         type="text"
@@ -475,69 +481,69 @@ const LeadDetailsModal = ({ lead, role, onClose, onUpdate, loading }) => {
                                     </div>
                                 </div>
                             ) : (
-                                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-2">
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-medium text-gray-700">Action:</span>
-                                        <span className="text-gray-900">{lead.description?.faqType || "N/A"}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-medium text-gray-700">Action type:</span>
-                                        <span className="text-gray-900">{lead.description?.variant || "N/A"}</span>
-                                    </div>
-                                </div>
-                            )}
+                        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-2">
+                            <div className="flex items-center gap-2">
+                                <span className="font-medium text-gray-700">Action:</span>
+                                <span className="text-gray-900">{lead.description?.faqType || "N/A"}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="font-medium text-gray-700">Action type:</span>
+                                <span className="text-gray-900">{lead.description?.variant || "N/A"}</span>
+                            </div>
                         </div>
+                            )}
                     </div>
+                </div>
 
-                    {/* Bottom Section: Timeline */}
-                    <div className="mt-8 space-y-4">
-                        <h3 className="font-semibold text-lg text-gray-800 flex items-center gap-2 mb-2">
-                            <FiClock className="text-gray-600" /> Timeline
-                        </h3>
-                        <div className="relative pl-6 before:absolute before:top-0 before:left-0 before:h-full before:w-1 before:bg-gray-200">
-                            {/* Creation Event */}
+                {/* Bottom Section: Timeline */}
+                <div className="mt-8 space-y-4">
+                    <h3 className="font-semibold text-lg text-gray-800 flex items-center gap-2 mb-2">
+                        <FiClock className="text-gray-600" /> Timeline
+                    </h3>
+                    <div className="relative pl-6 before:absolute before:top-0 before:left-0 before:h-full before:w-1 before:bg-gray-200">
+                        {/* Creation Event */}
+                        <div className="relative mb-4">
+                            <span className="absolute left-[-26px] top-1 h-4 w-4 rounded-full bg-blue-500 border-2 border-white"></span>
+                            <p className="text-sm text-gray-600">
+                                <span className="font-medium text-gray-800">{lead.assignedByNames?.join(", ") || "A user"}</span> created this lead.
+                                <span className="block text-xs text-gray-400">{dayjs(lead.createdAt).format("MMM DD, YYYY hh:mm A")}</span>
+                            </p>
+                        </div>
+                        {/* Assignment Events */}
+                        {lead.assignments?.length > 0 && lead.assignments.map((assignment, index) => (
+                            <div key={index} className="relative mb-4">
+                                <span className="absolute left-[-26px] top-1 h-4 w-4 rounded-full bg-blue-500 border-2 border-white"></span>
+                                <p className="text-sm text-gray-600">
+                                    <span className="font-medium text-gray-800">{assignment.assignedByUser?.name || "A user"}</span> assigned the task to <span className="font-medium text-gray-800">{assignment.user?.name || "a user"}</span>.
+                                    <span className="block text-xs text-gray-400">{dayjs(lead.updatedAt).format("MMM DD, YYYY hh:mm A")}</span>
+                                </p>
+                            </div>
+                        ))}
+                        {/* Other Update Events */}
+                        {dayjs(lead.updatedAt).isAfter(dayjs(lead.createdAt)) && (
                             <div className="relative mb-4">
                                 <span className="absolute left-[-26px] top-1 h-4 w-4 rounded-full bg-blue-500 border-2 border-white"></span>
                                 <p className="text-sm text-gray-600">
-                                    <span className="font-medium text-gray-800">{lead.assignedByNames?.join(", ") || "A user"}</span> created this lead.
-                                    <span className="block text-xs text-gray-400">{dayjs(lead.createdAt).format("MMM DD, YYYY hh:mm A")}</span>
+                                    <span className="font-medium text-gray-800">Lead</span> was updated.
+                                    <span className="block text-xs text-gray-400">{dayjs(lead.updatedAt).format("MMM DD, YYYY hh:mm A")}</span>
                                 </p>
                             </div>
-                            {/* Assignment Events */}
-                            {lead.assignments?.length > 0 && lead.assignments.map((assignment, index) => (
-                                <div key={index} className="relative mb-4">
-                                    <span className="absolute left-[-26px] top-1 h-4 w-4 rounded-full bg-blue-500 border-2 border-white"></span>
-                                    <p className="text-sm text-gray-600">
-                                        <span className="font-medium text-gray-800">{assignment.assignedByUser?.name || "A user"}</span> assigned the task to <span className="font-medium text-gray-800">{assignment.user?.name || "a user"}</span>.
-                                        <span className="block text-xs text-gray-400">{dayjs(lead.updatedAt).format("MMM DD, YYYY hh:mm A")}</span>
-                                    </p>
-                                </div>
-                            ))}
-                            {/* Other Update Events */}
-                            {dayjs(lead.updatedAt).isAfter(dayjs(lead.createdAt)) && (
-                                <div className="relative mb-4">
-                                    <span className="absolute left-[-26px] top-1 h-4 w-4 rounded-full bg-blue-500 border-2 border-white"></span>
-                                    <p className="text-sm text-gray-600">
-                                        <span className="font-medium text-gray-800">Lead</span> was updated.
-                                        <span className="block text-xs text-gray-400">{dayjs(lead.updatedAt).format("MMM DD, YYYY hh:mm A")}</span>
-                                    </p>
-                                </div>
-                            )}
-                            {/* Closed Event */}
-                            {lead.closedAt && (
-                                <div className="relative mb-4">
-                                    <span className="absolute left-[-26px] top-1 h-4 w-4 rounded-full bg-green-500 border-2 border-white"></span>
-                                    <p className="text-sm text-gray-600">
-                                        <span className="font-medium text-gray-800">Lead</span> was closed by <span className="font-medium text-gray-800">{lead.closedBy || "an admin"}</span>.
-                                        <span className="block text-xs text-gray-400">{dayjs(lead.closedAt).format("MMM DD, YYYY hh:mm A")}</span>
-                                    </p>
-                                </div>
-                            )}
-                        </div>
+                        )}
+                        {/* Closed Event */}
+                        {lead.closedAt && (
+                            <div className="relative mb-4">
+                                <span className="absolute left-[-26px] top-1 h-4 w-4 rounded-full bg-green-500 border-2 border-white"></span>
+                                <p className="text-sm text-gray-600">
+                                    <span className="font-medium text-gray-800">Lead</span> was closed by <span className="font-medium text-gray-800">{lead.closedBy || "an admin"}</span>.
+                                    <span className="block text-xs text-gray-400">{dayjs(lead.closedAt).format("MMM DD, YYYY hh:mm A")}</span>
+                                </p>
+                            </div>
+                        )}
                     </div>
+                </div>
 
-                    <div className="flex justify-end gap-3 mt-4">
-                        <Button onClick={onClose}>Close</Button>
+                <div className="flex justify-end gap-3 mt-4">
+                    <Button onClick={onClose}>Close</Button>
                     </div>
                 </div>
             ) : (
@@ -593,13 +599,13 @@ const LeadDetailsModal = ({ lead, role, onClose, onUpdate, loading }) => {
 
                     <div className="flex justify-end gap-3 mt-4">
                         <Button onClick={() => setShowDetails(false)}>Cancel</Button>
-                        {!isEmployee && (
+                    {!isEmployee && (
                             <Button type="primary" htmlType="submit" loading={detailsSaving}>
-                                Save Changes
-                            </Button>
-                        )}
-                    </div>
-                </Form>
+                            Save Changes
+                        </Button>
+                    )}
+                </div>
+            </Form>
             )}
 
             {!isEmployee && (
