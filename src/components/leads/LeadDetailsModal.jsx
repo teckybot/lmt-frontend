@@ -253,13 +253,13 @@ const LeadDetailsModal = ({ lead, role, onClose, onUpdate, loading }) => {
     return (
         <Modal
             title={
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mt-4">
                 <div className="flex items-center gap-2">
                     <FiEdit className="text-blue-500" />
                     <span className="font-semibold text-gray-800">{lead.title || (isEmployee ? "View Lead" : "Edit Lead")}</span>
                     </div>
-                    {!isEmployee && (
-                        <Tooltip title="View/Edit Details">
+                    {/* {!isEmployee && ( */}
+                        <Tooltip title="View Details">
                             <Button
                                 type="text"
                                 icon={<FiInfo className="text-blue-500" />}
@@ -269,7 +269,7 @@ const LeadDetailsModal = ({ lead, role, onClose, onUpdate, loading }) => {
                                 {showDetails ? "Hide Details" : "Details"}
                             </Button>
                         </Tooltip>
-                    )}
+                    {/* )} */}
                 </div>
             }
             open={true}
@@ -277,7 +277,7 @@ const LeadDetailsModal = ({ lead, role, onClose, onUpdate, loading }) => {
             footer={null}
             width={800}
             destroyOnClose
-            bodyStyle={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}
+            bodyStyle={{ maxHeight: 'calc(100vh - 220px)', overflowY: 'auto' }}
         >
             {!showDetails ? (
                 // Main Modal Content
