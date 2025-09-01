@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Spin, Avatar, Input, List, Button } from "antd";
+import { Modal, Spin, Avatar, Input, List, Button, message, Tooltip } from "antd";
 import { FiUser, FiSearch } from "react-icons/fi";
 import api from "../../utils/axiosInstance";
 
-const AssigneeSelector = ({ lead, visible, onClose, onAssign }) => {
+const AssigneeSelector = ({ lead, visible, onClose, role }) => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [saving, setSaving] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedIds, setSelectedIds] = useState([]);
 
@@ -22,6 +23,7 @@ const AssigneeSelector = ({ lead, visible, onClose, onAssign }) => {
             setUsers(res.data);
         } catch (err) {
             console.error("Failed to fetch users", err);
+            message.error("Failed to fetch users");
         } finally {
             setLoading(false);
         }
@@ -30,37 +32,75 @@ const AssigneeSelector = ({ lead, visible, onClose, onAssign }) => {
     // Initialize selection from current lead when opened
     useEffect(() => {
         if (visible) {
-            setSelectedIds(lead.assignees?.map(a => a.id) || []);
+            setSelectedIds(lead?.assignees?.map((a) => a.id) || []);
         }
     }, [visible, lead]);
 
     const toggleUser = (userId) => {
-        setSelectedIds((prev) => {
-            if (prev.includes(userId)) {
-                return prev.filter(id => id !== userId);
+        setSelectedIds((prev) =>
+            prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+        );
+    };
+
+    const handleSave = async () => {
+        try {
+            setSaving(true);
+            await api.post(`/assigns/${lead.id}/assign`, { assigneeIds: selectedIds });
+            message.success("Lead assigned successfully");
+            onClose();
+        } catch (err) {
+            console.error("Assign error:", err.response?.data || err);
+
+            if (role === "admin" && err.response?.status === 403) {
+                // Show popup to request reassignment
+                Modal.confirm({
+                    title: "Request Reassignment",
+                    content: err.response?.data?.message ||
+                        "This lead is already assigned by a super admin. Send a reassignment request?",
+                    okText: "Send",
+                    cancelText: "Cancel",
+                    async onOk() {
+                        try {
+                            await api.post(`/assigns/${lead.id}/reassign-request`);
+                            message.success("Request sent to super admins");
+                            onClose();
+                        } catch (e) {
+                            console.error("Reassign error:", e.response?.data || e);
+                            message.error(e.response?.data?.message || "Failed to send reassignment request");
+                        }
+                    }
+                });
+            } else {
+                message.error(err.response?.data?.message || "Failed to assign lead");
             }
-            return [...prev, userId];
-        });
+        } finally {
+            setSaving(false);
+        }
     };
 
-    const handleSave = () => {
-        onAssign(selectedIds);
+    // Function to get first letter of name for avatar fallback
+    const getInitials = (name) => {
+        if (!name) return "?";
+        return name.charAt(0).toUpperCase();
     };
 
-    const filteredUsers = users.filter((user) =>
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredUsers = users.filter(
+        (user) =>
+            user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
         <Modal
-            title="Assignees"
+            title="Assign Assignees"
             open={visible}
             onCancel={onClose}
             footer={
                 <div className="flex justify-end gap-2">
                     <Button onClick={onClose}>Cancel</Button>
-                    <Button type="primary" onClick={handleSave} disabled={loading}>Save</Button>
+                    <Button type="primary" onClick={handleSave} loading={saving}>
+                        Save
+                    </Button>
                 </div>
             }
             width={400}
@@ -90,13 +130,25 @@ const AssigneeSelector = ({ lead, visible, onClose, onAssign }) => {
                                 >
                                     <List.Item.Meta
                                         avatar={
-                                            <Avatar
-                                                src={user.avatar } 
-                                                icon={<FiUser />}
-                                            />
+                                            <Tooltip title={user.name}>
+                                                <Avatar 
+                                                    src={user.avatar} 
+                                                    icon={<FiUser />}
+                                                    style={{ 
+                                                        backgroundColor: user.avatar ? undefined : '#1890ff',
+                                                        borderRadius: '4px' // Make it rectangular
+                                                    }}
+                                                >
+                                                    {!user.avatar && getInitials(user.name)}
+                                                </Avatar>
+                                            </Tooltip>
                                         }
-                                        title={<div className="font-semibold text-sm">{user.name}</div>}
-                                        description={<div className="text-xs text-gray-500">{user.email}</div>}
+                                        title={
+                                            <div className="font-semibold text-sm">{user.name}</div>
+                                        }
+                                        description={
+                                            <div className="text-xs text-gray-500">{user.email}</div>
+                                        }
                                     />
                                     {isAssigned && <span className="text-blue-500">✓</span>}
                                 </List.Item>

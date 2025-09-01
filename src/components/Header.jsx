@@ -193,7 +193,7 @@ const Header = ({ setActiveTab }) => {
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
 
-        const notiRes = await api.get('/users/notifications');
+        const notiRes = await api.get('/notifications/notifications');
         setNotifications(notiRes.data || []);
       } catch (err) {
         console.error('Error fetching user data:', err);

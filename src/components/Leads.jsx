@@ -71,12 +71,42 @@ const LeadsTable = () => {
     const handleUpdateLead = async (updatedValues) => {
         try {
             setLoading(true);
+            console.log("Sending update request with data:", updatedValues); // Debug log
+            
             const res = await api.put(`/leads/${editingLead.id}`, updatedValues);
-            setLeads(prevLeads => prevLeads.map(lead => lead.id === res.data.id ? res.data : lead));
+            console.log("Backend response:", res.data); // Debug log
+            
+            // Update the leads list with the updated lead data
+            setLeads(prevLeads => prevLeads.map(lead => {
+                if (lead.id === editingLead.id) {
+                    // Merge the updated values with the existing lead data
+                    return {
+                        ...lead,
+                        ...updatedValues,
+                        // Ensure we preserve the assignees and other complex fields
+                        assignees: updatedValues.assignees || lead.assignees,
+                        assignments: updatedValues.assignments || lead.assignments,
+                        assignedByNames: updatedValues.assignedByNames || lead.assignedByNames,
+                    };
+                }
+                return lead;
+            }));
+            
+            // Update the editingLead state as well
+            setEditingLead(prev => ({
+                ...prev,
+                ...updatedValues,
+                assignees: updatedValues.assignees || prev.assignees,
+                assignments: updatedValues.assignments || prev.assignments,
+                assignedByNames: updatedValues.assignedByNames || prev.assignedByNames,
+            }));
+            
             toast.success("Lead updated successfully!");
         } catch (err) {
             console.error("Error updating lead", err);
-            toast.error("Failed to update lead.");
+            console.error("Error response data:", err.response?.data); // Debug log
+            console.error("Error response status:", err.response?.status); // Debug log
+            toast.error(err.response?.data?.error || err.response?.data?.message || "Failed to update lead.");
         } finally {
             setLoading(false);
         }
