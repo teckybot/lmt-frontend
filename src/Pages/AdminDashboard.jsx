@@ -5,7 +5,7 @@ import Analytics from "../components/Analytics";
 import Leads from "../components/Leads";
 import Profile from "../components/Profile";
 import CreateLead from "../components/CreateLead";
-import LeadTable from "../components/Assigns/LeadTable";
+import LeadTodo from "../components/Assigns/LeadTodo";
 // import ManageEmployees from "../components/ManageEmployees"; // admin-specific
 import api from "../utils/axiosInstance";
 
@@ -97,7 +97,7 @@ const AdminDashboard = () => {
       case "profile":
         return <Profile />;
       case "assigns":
-        return <LeadTable role={"admin"} />;
+        return <LeadTodo role={"admin"} />;
       case "employees": // Admin-specific tab
         return <ManageEmployees />;
       default:

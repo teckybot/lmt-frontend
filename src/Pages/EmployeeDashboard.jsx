@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import Leads from "../components/Leads";
 import Profile from "../components/Profile";
-import LeadTable from "../components/Assigns/LeadTable";
+import LeadTodo from "../components/Assigns/LeadTodo";
 import api from "../utils/axiosInstance";
 
 const EmployeeDashboard = () => {
@@ -82,7 +82,7 @@ const EmployeeDashboard = () => {
       case "profile":
         return <Profile />;
       case "assigns":
-        return <LeadTable role={"employee"} />;
+        return <LeadTodo role={"employee"} />;
       default:
         return <Leads leads={leads} updateStatus={updateStatus} isLoading={isLoading} />;
     }

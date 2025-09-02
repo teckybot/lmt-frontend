@@ -216,7 +216,7 @@ const LeadDetailsModal = ({ lead, role, onClose, onUpdate, loading }) => {
             
             // Call onUpdate to update parent component state
             await onUpdate(updatedLead);
-            message.success("Lead assignment updated successfully!");
+            // message.success("Lead assignment updated successfully!");
             setIsAssigneeSelectorVisible(false);
         } catch (err) {
             console.error("Error assigning lead", err);

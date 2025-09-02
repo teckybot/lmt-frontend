@@ -6,7 +6,7 @@ import AssignModal from './AssignModal';
 import BulkAssignModal from './BulkAssignModal';
 import LeadDetailsModal from '../leads/LeadDetailsModal';
 
-const LeadTable = ({ role }) => {
+const LeadTodo = ({ role }) => {
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(false);
   const [assignModalVisible, setAssignModalVisible] = useState(false);
@@ -51,10 +51,10 @@ const LeadTable = ({ role }) => {
     try {
       setLoading(true);
       console.log("ToDo: Sending update request with data:", updatedValues); // Debug log
-      
+
       const res = await api.put(`/leads/${selectedLead.id}`, updatedValues);
       console.log("ToDo: Backend response:", res.data); // Debug log
-      
+
       // Update the leads list with the updated lead data
       setLeads(prevLeads => prevLeads.map(lead => {
         if (lead.id === selectedLead.id) {
@@ -65,22 +65,26 @@ const LeadTable = ({ role }) => {
             // Ensure we preserve the assignees and other complex fields
             assignees: updatedValues.assignees || lead.assignees,
             assignments: updatedValues.assignments || lead.assignments,
-            assignedByNames: updatedValues.assignedByNames || lead.assignedByNames,
+            assignedByNames: updatedValues.assignedByNames
+              ? [...new Set(updatedValues.assignedByNames)]
+              : lead.assignedByNames,
           };
         }
         return lead;
       }));
-      
+
       // Update the selectedLead state as well
       setSelectedLead(prev => ({
         ...prev,
         ...updatedValues,
         assignees: updatedValues.assignees || prev.assignees,
         assignments: updatedValues.assignments || prev.assignments,
-        assignedByNames: updatedValues.assignedByNames || prev.assignedByNames,
+        assignedByNames: updatedValues.assignedByNames
+          ? [...new Set(updatedValues.assignedByNames)]
+          : prev.assignedByNames,
       }));
-      
-      message.success('Lead updated successfully');
+
+      // message.success('Lead updated successfully');
     } catch (err) {
       console.error("ToDo: Error updating lead", err);
       console.error("ToDo: Error response data:", err.response?.data); // Debug log
@@ -297,4 +301,4 @@ const LeadTable = ({ role }) => {
   );
 };
 
-export default LeadTable;
+export default LeadTodo; 

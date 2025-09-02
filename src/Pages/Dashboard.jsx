@@ -5,7 +5,7 @@ import Analytics from "../components/Analytics";
 import Leads from "../components/Leads";
 import Profile from "../components/Profile";
 import CreateLead from "../components/CreateLead";
-import LeadTable from "../components/Assigns/LeadTable";
+import LeadTodo from "../components/Assigns/LeadTodo";
 import UserManagement from "../components/Users";
 import api from "../utils/axiosInstance";
 
@@ -110,7 +110,7 @@ const Dashboard = () => {
       case "profile":
         return <Profile />;
       case "assigns":
-        return <LeadTable role={userRole} />;
+        return <LeadTodo role={userRole} />;
       case "Users":
         return <UserManagement />;
       default:

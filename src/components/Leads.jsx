@@ -101,7 +101,7 @@ const LeadsTable = () => {
                 assignedByNames: updatedValues.assignedByNames || prev.assignedByNames,
             }));
             
-            toast.success("Lead updated successfully!");
+            // toast.success("Lead updated successfully!");
         } catch (err) {
             console.error("Error updating lead", err);
             console.error("Error response data:", err.response?.data); // Debug log
