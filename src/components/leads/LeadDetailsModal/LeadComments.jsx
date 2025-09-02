@@ -1,9 +1,10 @@
 // File: components/LeadDetailsModal/LeadComments.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Avatar, Input, Button, message } from 'antd';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { FiMessageSquare } from 'react-icons/fi';
+import { io } from 'socket.io-client';
 
 dayjs.extend(relativeTime);
 
@@ -20,6 +21,7 @@ const LeadComments = ({ leadId, currentUser }) => {
   const [newComment, setNewComment] = useState('');
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [commentSubmitting, setCommentSubmitting] = useState(false);
+  const socketRef = useRef(null);
 
   // Function to fetch comments
   const fetchComments = async () => {
@@ -71,9 +73,49 @@ const LeadComments = ({ leadId, currentUser }) => {
   };
 
   useEffect(() => {
-    if (leadId) {
-      fetchComments();
-    }
+    if (!leadId) return;
+    fetchComments();
+
+    // Connect socket
+    const socket = io('http://localhost:5002', {
+      withCredentials: true,
+      transports: ['websocket'],
+    });
+    socketRef.current = socket;
+
+    // Join room for this lead
+    socket.emit('joinLeadRoom', leadId);
+
+    // Handle realtime events
+    const handleAdded = (comment) => {
+      if (comment.leadId === leadId) {
+        setComments((prev) => [...prev, comment]);
+      }
+    };
+    const handleEdited = (comment) => {
+      if (comment.leadId === leadId) {
+        setComments((prev) => prev.map((c) => (c.id === comment.id ? comment : c)));
+      }
+    };
+    const handleDeleted = ({ id, leadId: evtLeadId }) => {
+      if (evtLeadId === leadId) {
+        setComments((prev) => prev.filter((c) => c.id !== id));
+      }
+    };
+
+    socket.on('leadCommentAdded', handleAdded);
+    socket.on('leadCommentEdited', handleEdited);
+    socket.on('leadCommentDeleted', handleDeleted);
+
+    return () => {
+      try {
+        socket.emit('leaveLeadRoom', leadId);
+        socket.off('leadCommentAdded', handleAdded);
+        socket.off('leadCommentEdited', handleEdited);
+        socket.off('leadCommentDeleted', handleDeleted);
+        socket.disconnect();
+      } catch {}
+    };
   }, [leadId]);
 
   return (
