@@ -8,7 +8,7 @@ import api from "../utils/axiosInstance";
 
 // Import modular components
 import LeadCard from "../components/leads/LeadCard";
-import LeadDetailsModal from "../components/leads/LeadDetailsModal";
+import LeadDetailsModal from "./leads/LeadDetailsModal/LeadDetailsModal";
 import LeadFilters from "../components/leads/LeadFilters";
 
 const LeadsTable = () => {

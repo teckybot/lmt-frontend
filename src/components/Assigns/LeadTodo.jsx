@@ -4,7 +4,7 @@ import { FiUserPlus, FiLoader, FiMoreVertical, FiUsers, FiPlus } from 'react-ico
 import api from '../../utils/axiosInstance';
 import AssignModal from './AssignModal';
 import BulkAssignModal from './BulkAssignModal';
-import LeadDetailsModal from '../leads/LeadDetailsModal';
+import LeadDetailsModal from '../leads/LeadDetailsModal/LeadDetailsModal';
 
 const LeadTodo = ({ role }) => {
   const [leads, setLeads] = useState([]);
